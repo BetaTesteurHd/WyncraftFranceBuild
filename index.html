@@ -4,12 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wynn Dashboard</title>
-
   <style>
     :root {
       --bg: #0a1220;
       --bg2: #0f172a;
-      --panel: #111c31;
+      --panel: rgba(17, 28, 49, 0.92);
       --panel2: #16233d;
       --border: #26344f;
       --text: #e5eefc;
@@ -101,7 +100,7 @@
     }
 
     .panel {
-      background: rgba(17, 28, 49, 0.92);
+      background: var(--panel);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
@@ -329,12 +328,6 @@
       font-size: 12px;
     }
 
-    .owner {
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
     .badges {
       display: flex;
       gap: 8px;
@@ -468,6 +461,7 @@
       min-height: 18px;
       font-size: 13px;
       color: var(--muted);
+      white-space: pre-wrap;
     }
 
     .status.success {
@@ -806,7 +800,7 @@
   </div>
 
   <script type="module">
-    console.log("VERSION SUPABASE DEBUG V4");
+    console.log("VERSION SUPABASE FINAL 1");
 
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
@@ -1001,22 +995,18 @@
 
     async function fetchCurrentUser() {
       const { data, error } = await supabase.auth.getUser();
-      console.log("fetchCurrentUser error:", error);
+      console.log("fetchCurrentUser", { data, error });
       currentUser = data?.user ?? null;
-      console.log("fetchCurrentUser user:", currentUser);
       updateAuthUI();
     }
 
     async function loadBuilds() {
-      console.log("loadBuilds start");
-
       const { data, error } = await supabase
         .from("builds")
         .select("*")
         .order("created_at", { ascending: false });
 
-      console.log("loadBuilds data:", data);
-      console.log("loadBuilds error:", error);
+      console.log("loadBuilds", { data, error });
 
       if (error) {
         toolbarText.textContent = "Erreur de chargement des builds.";
@@ -1078,14 +1068,10 @@
       console.log("Avant insert Supabase");
 
       try {
-        const { data, error } = await supabase
-          .from("builds")
-          .insert([payload])
-          .select();
+        const { error } = await supabase.from("builds").insert([payload]);
 
         console.log("Après insert Supabase");
-        console.log("data:", data);
-        console.log("error:", error);
+        console.log("insert error:", error);
 
         if (error) {
           console.error("Erreur Supabase complète :", error);
@@ -1106,21 +1092,20 @@
     }
 
     function openLoginModal() {
-      console.log("=== openLoginModal ===");
-      loginModal.classList.add("open");
       loginStatus.textContent = "";
+      loginModal.classList.add("open");
       loginEmail.focus();
     }
 
     function closeLoginModal() {
-      console.log("=== closeLoginModal ===");
       loginModal.classList.remove("open");
     }
 
     async function login() {
-      console.log("=== login clicked ===");
       const email = loginEmail.value.trim();
       const password = loginPassword.value;
+
+      console.log("=== login clicked ===", email);
 
       if (!email || !password) {
         showStatus(loginStatus, "Email et mot de passe requis.", "error");
@@ -1129,12 +1114,10 @@
 
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-      console.log("login data:", data);
-      console.log("login error:", error);
+      console.log("login result", { data, error });
 
       if (error) {
-        console.error(error);
-        showStatus(loginStatus, "Connexion impossible.", "error");
+        showStatus(loginStatus, `Connexion impossible : ${error.message}`, "error");
         return;
       }
 
@@ -1150,21 +1133,19 @@
 
       try {
         const { error } = await supabase.auth.signOut();
-        console.log("logout error:", error);
+        console.log("logout result", { error });
 
         if (error) {
-          console.error("Erreur déconnexion :", error);
-          alert("Erreur lors de la déconnexion.");
+          alert(`Erreur déconnexion : ${error.message}`);
           return;
         }
 
         currentUser = null;
         updateAuthUI();
         await loadBuilds();
-        console.log("Déconnexion réussie");
       } catch (err) {
         console.error("Erreur JS logout :", err);
-        alert("Erreur JS lors de la déconnexion.");
+        alert(`Erreur JS déconnexion : ${err.message || "inconnue"}`);
       }
     }
 
@@ -1185,4 +1166,341 @@
       editingBuildId = null;
     }
 
-    async function saveEdit()
+    async function saveEdit() {
+      if (!currentUser || !editingBuildId) return;
+
+      const payload = {
+        name: editName.value.trim(),
+        link: editLink.value.trim(),
+        class_name: editClass.value,
+        subclass_name: editSubclass.value,
+        notes: editNotes.value.trim()
+      };
+
+      console.log("saveEdit payload", payload);
+
+      if (!payload.name) {
+        showStatus(editStatus, "Le nom est requis.", "error");
+        return;
+      }
+
+      if (!isValidLink(payload.link)) {
+        showStatus(editStatus, "Lien invalide.", "error");
+        return;
+      }
+
+      const { error } = await supabase
+        .from("builds")
+        .update(payload)
+        .eq("id", editingBuildId);
+
+      console.log("saveEdit result", { error });
+
+      if (error) {
+        showStatus(editStatus, `Modification impossible : ${error.message}`, "error");
+        return;
+      }
+
+      closeEditModal();
+      await loadBuilds();
+    }
+
+    async function deleteBuild(id) {
+      if (!currentUser) return;
+      if (!confirm("Supprimer ce build ?")) return;
+
+      const { error } = await supabase
+        .from("builds")
+        .delete()
+        .eq("id", id);
+
+      console.log("deleteBuild result", { error });
+
+      if (error) {
+        alert(`Suppression impossible : ${error.message}`);
+        return;
+      }
+
+      await loadBuilds();
+    }
+
+    async function copyLink(link) {
+      try {
+        await navigator.clipboard.writeText(link);
+        alert("Lien copié.");
+      } catch {
+        alert("Impossible de copier le lien.");
+      }
+    }
+
+    function getFilteredBuilds() {
+      const search = searchInput.value.trim().toLowerCase();
+      const classFilter = filterClassSelect.value;
+      const subclassFilter = filterSubclassSelect.value;
+
+      return allBuilds.filter(build => {
+        const searchOk =
+          (build.name || "").toLowerCase().includes(search) ||
+          (build.class_name || "").toLowerCase().includes(search) ||
+          (build.subclass_name || "").toLowerCase().includes(search);
+
+        const classOk = classFilter === "all" || build.class_name === classFilter;
+        const subclassOk = subclassFilter === "all" || build.subclass_name === subclassFilter;
+
+        return searchOk && classOk && subclassOk;
+      });
+    }
+
+    function renderStats(filteredBuilds) {
+      statTotal.textContent = allBuilds.length;
+      statFiltered.textContent = filteredBuilds.length;
+      statClasses.textContent = new Set(allBuilds.map(b => b.class_name)).size;
+      statEditors.textContent = new Set(allBuilds.map(b => b.owner_id).filter(Boolean)).size;
+    }
+
+    function renderClassSummary() {
+      classSummary.innerHTML = "";
+
+      Object.keys(CLASS_DATA).forEach(className => {
+        const total = allBuilds.filter(b => b.class_name === className).length;
+        const div = document.createElement("div");
+        div.className = "class-row";
+        div.innerHTML = `<strong>${escapeHtml(className)}</strong><span>${total} build(s)</span>`;
+        classSummary.appendChild(div);
+      });
+    }
+
+    function renderToolbar(filteredBuilds) {
+      toolbarText.textContent = filteredBuilds.length
+        ? `${filteredBuilds.length} build(s) affiché(s).`
+        : "Aucun build ne correspond aux filtres actuels.";
+
+      activePills.innerHTML = "";
+
+      const pills = [];
+      if (searchInput.value.trim()) pills.push(`Recherche : ${searchInput.value.trim()}`);
+      if (filterClassSelect.value !== "all") pills.push(`Classe : ${filterClassSelect.value}`);
+      if (filterSubclassSelect.value !== "all") pills.push(`Sous-classe : ${filterSubclassSelect.value}`);
+      if (!pills.length) pills.push("Aucun filtre actif");
+
+      pills.forEach(text => {
+        const div = document.createElement("div");
+        div.className = "pill";
+        div.textContent = text;
+        activePills.appendChild(div);
+      });
+    }
+
+    function openPreview(build) {
+      modalTitle.textContent = `${build.name} — ${build.class_name} / ${build.subclass_name}`;
+      modalOpenLink.href = build.link;
+      fallbackLink.href = build.link;
+      previewFrame.src = build.link;
+      previewFallback.classList.remove("show");
+      previewModal.classList.add("open");
+
+      clearTimeout(openPreview._timer);
+      openPreview._timer = setTimeout(() => {
+        previewFallback.classList.add("show");
+      }, 3000);
+    }
+
+    function closePreview() {
+      previewModal.classList.remove("open");
+      previewFrame.src = "about:blank";
+      previewFallback.classList.remove("show");
+      clearTimeout(openPreview._timer);
+    }
+
+    function reloadPreview() {
+      const link = modalOpenLink.href;
+      if (!link) return;
+
+      previewFallback.classList.remove("show");
+      previewFrame.src = "about:blank";
+
+      setTimeout(() => {
+        previewFrame.src = link;
+        openPreview._timer = setTimeout(() => {
+          previewFallback.classList.add("show");
+        }, 3000);
+      }, 80);
+    }
+
+    function renderBuilds(filteredBuilds) {
+      buildList.innerHTML = "";
+
+      if (!filteredBuilds.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty panel";
+        empty.innerHTML = `
+          <h3>Aucun build trouvé</h3>
+          <p>Ajoute un build ou modifie les filtres.</p>
+        `;
+        buildList.appendChild(empty);
+        return;
+      }
+
+      filteredBuilds.forEach(build => {
+        const isOwner = currentUser && build.owner_id === currentUser.id;
+
+        const card = document.createElement("article");
+        card.className = "card panel";
+
+        card.innerHTML = `
+          <div>
+            <h3>${escapeHtml(build.name)}</h3>
+            <div class="date">Ajouté le ${escapeHtml(formatDate(build.created_at))}</div>
+          </div>
+
+          <div class="badges">
+            <span class="badge">${escapeHtml(build.class_name)}</span>
+            <span class="badge">${escapeHtml(build.subclass_name)}</span>
+          </div>
+
+          <div class="info-box">
+            <div class="info-row">
+              <div class="info-label">Lien</div>
+              <div><span class="mono" title="${escapeHtml(build.link)}">${escapeHtml(build.link)}</span></div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Hash</div>
+              <div><span class="mono" title="${escapeHtml(getHash(build.link))}">${escapeHtml(getHash(build.link))}</span></div>
+            </div>
+          </div>
+
+          <div class="notes-box">
+            <div class="notes-title">Informations</div>
+            <div class="notes-content ${build.notes ? "" : "notes-empty"}">
+              ${build.notes ? escapeHtml(build.notes) : "Aucune information ajoutée pour ce build."}
+            </div>
+          </div>
+
+          <div class="note">
+            Clique sur <strong>Aperçu</strong> pour voir le build WynnBuilder avec ses stats.
+          </div>
+        `;
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const previewBtn = document.createElement("button");
+        previewBtn.type = "button";
+        previewBtn.textContent = "Aperçu";
+        previewBtn.addEventListener("click", () => openPreview(build));
+
+        const openBtn = document.createElement("a");
+        openBtn.className = "button-link btn-secondary";
+        openBtn.href = build.link;
+        openBtn.target = "_blank";
+        openBtn.rel = "noopener noreferrer";
+        openBtn.textContent = "Ouvrir";
+
+        const copyBtn = document.createElement("button");
+        copyBtn.type = "button";
+        copyBtn.className = "btn-secondary";
+        copyBtn.textContent = "Copier";
+        copyBtn.addEventListener("click", () => copyLink(build.link));
+
+        actions.appendChild(previewBtn);
+        actions.appendChild(openBtn);
+        actions.appendChild(copyBtn);
+
+        if (isOwner) {
+          const editBtn = document.createElement("button");
+          editBtn.type = "button";
+          editBtn.className = "btn-secondary";
+          editBtn.textContent = "Modifier";
+          editBtn.addEventListener("click", () => openEditModal(build));
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.type = "button";
+          deleteBtn.className = "btn-danger";
+          deleteBtn.textContent = "Supprimer";
+          deleteBtn.addEventListener("click", () => deleteBuild(build.id));
+
+          actions.appendChild(editBtn);
+          actions.appendChild(deleteBtn);
+        }
+
+        card.appendChild(actions);
+        buildList.appendChild(card);
+      });
+    }
+
+    function render() {
+      const filteredBuilds = getFilteredBuilds();
+      renderStats(filteredBuilds);
+      renderClassSummary();
+      renderToolbar(filteredBuilds);
+      renderBuilds(filteredBuilds);
+    }
+
+    function bindEvents() {
+      buildClassSelect.addEventListener("change", updateBuildSubclasses);
+      editClass.addEventListener("change", updateEditSubclasses);
+
+      filterClassSelect.addEventListener("change", () => {
+        updateFilterSubclasses();
+        render();
+      });
+
+      filterSubclassSelect.addEventListener("change", render);
+      searchInput.addEventListener("input", render);
+
+      addBuildBtn.addEventListener("click", addBuild);
+
+      loginBtn.addEventListener("click", openLoginModal);
+      logoutBtn.addEventListener("click", logout);
+      submitLoginBtn.addEventListener("click", login);
+      closeLoginModalBtn.addEventListener("click", closeLoginModal);
+
+      saveEditBtn.addEventListener("click", saveEdit);
+      closeEditModalBtn.addEventListener("click", closeEditModal);
+
+      scrollToAddBtn.addEventListener("click", () => {
+        addSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        buildLinkInput.focus();
+      });
+
+      closePreviewBtn.addEventListener("click", closePreview);
+      reloadPreviewBtn.addEventListener("click", reloadPreview);
+
+      [loginModal, editModal, previewModal].forEach(modal => {
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) modal.classList.remove("open");
+        });
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closePreview();
+          closeLoginModal();
+          closeEditModal();
+        }
+      });
+
+      previewFrame.addEventListener("load", () => {
+        previewFallback.classList.remove("show");
+        clearTimeout(openPreview._timer);
+      });
+
+      supabase.auth.onAuthStateChange(async (_event, session) => {
+        console.log("onAuthStateChange", _event, session);
+        currentUser = session?.user ?? null;
+        updateAuthUI();
+        await loadBuilds();
+      });
+    }
+
+    async function init() {
+      populateClassOptions();
+      bindEvents();
+      await fetchCurrentUser();
+      await loadBuilds();
+    }
+
+    init();
+  </script>
+</body>
+</html>
