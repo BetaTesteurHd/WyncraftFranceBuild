@@ -1018,15 +1018,87 @@
       render();
     }
 
-    async function addBuild() {
-      console.log("=== addBuild clicked ===");
-      console.log("currentUser:", currentUser);
-      console.log("currentUser.id:", currentUser?.id);
+   async function addBuild() {
+  console.log("=== addBuild clicked ===");
+  console.log("currentUser:", currentUser);
+  console.log("currentUser.id:", currentUser?.id);
 
-      if (!currentUser) {
-        showStatus(statusMessage, "Tu dois être connecté.", "error");
-        console.error("Aucun utilisateur connecté");
-        return;
+  if (!currentUser) {
+    showStatus(statusMessage, "Tu dois être connecté.", "error");
+    return;
+  }
+
+  const className = buildClassSelect.value;
+  const subclassName = buildSubclassSelect.value;
+  const link = buildLinkInput.value.trim();
+  const name = buildNameInput.value.trim() || `${className} • ${subclassName}`;
+  const notes = buildNotesInput.value.trim();
+  const ownerId = currentUser.id;
+
+  if (!link) {
+    showStatus(statusMessage, "Tu dois coller un lien.", "error");
+    return;
+  }
+
+  if (!isValidLink(link)) {
+    showStatus(statusMessage, "Le lien n'est pas valide.", "error");
+    return;
+  }
+
+  const payload = {
+    name,
+    link,
+    class_name: className,
+    subclass_name: subclassName,
+    notes,
+    owner_id: ownerId
+  };
+
+  console.log("Payload envoyé:", JSON.stringify(payload, null, 2));
+
+  try {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    console.log("Session récupérée:", sessionData, sessionError);
+
+    const accessToken = sessionData?.session?.access_token;
+
+    if (!accessToken) {
+      showStatus(statusMessage, "Session introuvable. Reconnecte-toi.", "error");
+      return;
+    }
+
+    console.log("Avant fetch REST insert");
+
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/builds`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const text = await response.text();
+    console.log("Réponse brute insert:", response.status, text);
+
+    if (!response.ok) {
+      showStatus(statusMessage, `Erreur ajout : ${text}`, "error");
+      return;
+    }
+
+    buildNameInput.value = "";
+    buildLinkInput.value = "";
+    buildNotesInput.value = "";
+
+    showStatus(statusMessage, "Build ajouté avec succès.", "success");
+    await loadBuilds();
+  } catch (err) {
+    console.error("Erreur JS lors de l'ajout :", err);
+    showStatus(statusMessage, `Erreur JS : ${err.message || "inconnue"}`, "error");
+  }
+}
       }
 
       const className = buildClassSelect.value;
@@ -1129,16 +1201,26 @@
     }
 
     async function logout() {
-      console.log("=== logout clicked ===");
+  console.log("=== logout clicked ===");
 
-      try {
-        const { error } = await supabase.auth.signOut();
-        console.log("logout result", { error });
+  try {
+    const { error } = await supabase.auth.signOut({ scope: "local" });
+    console.log("logout result", { error });
 
-        if (error) {
-          alert(`Erreur déconnexion : ${error.message}`);
-          return;
-        }
+    if (error) {
+      alert(`Erreur déconnexion : ${error.message}`);
+      return;
+    }
+
+    currentUser = null;
+    updateAuthUI();
+    await loadBuilds();
+    alert("Déconnexion réussie.");
+  } catch (err) {
+    console.error("Erreur JS logout :", err);
+    alert(`Erreur JS déconnexion : ${err.message || "inconnue"}`);
+  }
+}
 
         currentUser = null;
         updateAuthUI();
