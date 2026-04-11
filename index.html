@@ -164,7 +164,8 @@
       outline: none;
     }
 
-    input::placeholder {
+    input::placeholder,
+    textarea::placeholder {
       color: #8192ac;
     }
 
@@ -274,7 +275,7 @@
       padding: 16px;
       display: grid;
       gap: 14px;
-      min-height: 290px;
+      min-height: 340px;
       background: linear-gradient(180deg, rgba(12,20,35,.96), rgba(10,17,29,.95));
     }
 
@@ -318,50 +319,72 @@
       padding: 14px;
       display: grid;
       gap: 10px;
+      width: 100%;
+      min-width: 0;
     }
 
     .info-row {
-  display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
-  gap: 10px;
-  align-items: start;
-  font-size: 13px;
-}
-.info-box {
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: rgba(22,35,61,.72);
-  padding: 14px;
-  display: grid;
-  gap: 10px;
-  width: 100%;
-  min-width: 0;
-}
+      display: grid;
+      grid-template-columns: 88px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      font-size: 13px;
+    }
 
-.info-row > div:last-child {
-  min-width: 0;
-}
+    .info-row > div:last-child {
+      min-width: 0;
+    }
+
     .info-label {
       color: var(--muted);
       font-weight: 700;
     }
 
     .mono {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  border: 1px solid var(--border);
-  background: rgba(10,18,32,.65);
-  border-radius: 10px;
-  padding: 8px 10px;
-  font-family: Consolas, monospace;
-  font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      border: 1px solid var(--border);
+      background: rgba(10,18,32,.65);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
+    .notes-box {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(18, 30, 52, 0.72);
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .notes-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .notes-content {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .notes-empty {
+      color: var(--muted);
+      font-style: italic;
+    }
 
     .note {
       color: var(--muted);
@@ -372,7 +395,7 @@
     .actions {
       margin-top: auto;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
     }
 
@@ -668,7 +691,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "wynn_dashboard_simple_working_v1";
+    const STORAGE_KEY = "wynn_dashboard_simple_working_v2";
 
     const CLASS_DATA = {
       Warrior: ["Fallen", "Battle Monk", "Paladin"],
@@ -828,6 +851,7 @@
         link,
         className,
         subclassName,
+        notes: "",
         createdAt: new Date().toISOString()
       });
 
@@ -871,6 +895,21 @@
       }
 
       builds[index].link = clean;
+      saveBuilds(builds);
+      render();
+    }
+
+    function editNotes(id) {
+      const builds = getBuilds();
+      const index = builds.findIndex(b => b.id === id);
+      if (index === -1) return;
+
+      const currentNotes = builds[index].notes || "";
+      const nextNotes = prompt("Modifier les informations du build :", currentNotes);
+
+      if (nextNotes === null) return;
+
+      builds[index].notes = nextNotes.trim();
       saveBuilds(builds);
       render();
     }
@@ -1055,6 +1094,13 @@
             </div>
           </div>
 
+          <div class="notes-box">
+            <div class="notes-title">Informations</div>
+            <div class="notes-content ${build.notes ? "" : "notes-empty"}">
+              ${build.notes ? escapeHtml(build.notes) : "Aucune information ajoutée pour ce build."}
+            </div>
+          </div>
+
           <div class="note">
             Clique sur <strong>Aperçu</strong> pour voir le build WynnBuilder avec ses stats.
           </div>
@@ -1093,6 +1139,12 @@
         editBtn.textContent = "Lien";
         editBtn.addEventListener("click", () => editLink(build.id));
 
+        const notesBtn = document.createElement("button");
+        notesBtn.type = "button";
+        notesBtn.className = "btn-secondary";
+        notesBtn.textContent = "Infos";
+        notesBtn.addEventListener("click", () => editNotes(build.id));
+
         const deleteBtn = document.createElement("button");
         deleteBtn.type = "button";
         deleteBtn.className = "btn-danger";
@@ -1104,6 +1156,7 @@
         actions.appendChild(copyBtn);
         actions.appendChild(renameBtn);
         actions.appendChild(editBtn);
+        actions.appendChild(notesBtn);
         actions.appendChild(deleteBtn);
 
         card.appendChild(actions);
