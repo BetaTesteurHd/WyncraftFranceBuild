@@ -1028,9 +1028,10 @@
       render();
     }
 
- async function addBuild() {
+async function addBuild() {
   console.log("=== addBuild clicked ===");
   console.log("currentUser:", currentUser);
+  console.log("currentUser.id:", currentUser?.id);
 
   if (!currentUser) {
     showStatus(statusMessage, "Tu dois être connecté.", "error");
@@ -1043,15 +1044,14 @@
   const link = buildLinkInput.value.trim();
   const name = buildNameInput.value.trim() || `${className} • ${subclassName}`;
   const notes = buildNotesInput.value.trim();
+  const ownerId = currentUser.id;
 
-  console.log("Payload préparé :", {
-    name,
-    link,
-    class_name: className,
-    subclass_name: subclassName,
-    notes,
-    owner_id: currentUser.id
-  });
+  console.log("name:", name);
+  console.log("link:", link);
+  console.log("class_name:", className);
+  console.log("subclass_name:", subclassName);
+  console.log("notes:", notes);
+  console.log("owner_id:", ownerId);
 
   if (!link) {
     showStatus(statusMessage, "Tu dois coller un lien.", "error");
@@ -1065,33 +1065,44 @@
     return;
   }
 
-  const { data, error } = await supabase.from("builds").insert({
+  const payload = {
     name,
     link,
     class_name: className,
     subclass_name: subclassName,
     notes,
-    owner_id: currentUser.id
-  }).select();
+    owner_id: ownerId
+  };
 
-  console.log("Résultat insert :", { data, error });
+  console.log("Payload envoyé:", JSON.stringify(payload, null, 2));
+  console.log("Avant insert Supabase");
 
-  if (error) {
-    console.error("Erreur Supabase complète :", error);
-    showStatus(
-      statusMessage,
-      `Erreur ajout : ${error.message || "inconnue"}`,
-      "error"
-    );
-    return;
+  try {
+    const { data, error } = await supabase
+      .from("builds")
+      .insert([payload])
+      .select();
+
+    console.log("Après insert Supabase");
+    console.log("data:", data);
+    console.log("error:", error);
+
+    if (error) {
+      console.error("Erreur Supabase complète :", error);
+      showStatus(statusMessage, `Erreur ajout : ${error.message || "inconnue"}`, "error");
+      return;
+    }
+
+    buildNameInput.value = "";
+    buildLinkInput.value = "";
+    buildNotesInput.value = "";
+
+    showStatus(statusMessage, "Build ajouté avec succès.", "success");
+    await loadBuilds();
+  } catch (err) {
+    console.error("Erreur JS lors de l'ajout :", err);
+    showStatus(statusMessage, `Erreur JS : ${err.message || "inconnue"}`, "error");
   }
-
-  buildNameInput.value = "";
-  buildLinkInput.value = "";
-  buildNotesInput.value = "";
-
-  showStatus(statusMessage, "Build ajouté avec succès.", "success");
-  await loadBuilds();
 }
 
     function openLoginModal() {
@@ -1128,12 +1139,29 @@
       await loadBuilds();
     }
 
-    async function logout() {
-      await supabase.auth.signOut();
-      currentUser = null;
-      updateAuthUI();
-      await loadBuilds();
+async function logout() {
+  console.log("=== logout clicked ===");
+
+  try {
+    const { error } = await supabase.auth.signOut();
+
+    console.log("logout error:", error);
+
+    if (error) {
+      console.error("Erreur déconnexion :", error);
+      alert("Erreur lors de la déconnexion.");
+      return;
     }
+
+    currentUser = null;
+    updateAuthUI();
+    await loadBuilds();
+    console.log("Déconnexion réussie");
+  } catch (err) {
+    console.error("Erreur JS logout :", err);
+    alert("Erreur JS lors de la déconnexion.");
+  }
+}
 
     function openEditModal(build) {
       editingBuildId = build.id;
