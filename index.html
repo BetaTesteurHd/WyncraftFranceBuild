@@ -1026,49 +1026,71 @@
       render();
     }
 
-    async function addBuild() {
-      if (!currentUser) {
-        showStatus(statusMessage, "Tu dois être connecté.", "error");
-        return;
-      }
+ async function addBuild() {
+  console.log("=== addBuild clicked ===");
+  console.log("currentUser:", currentUser);
 
-      const className = buildClassSelect.value;
-      const subclassName = buildSubclassSelect.value;
-      const link = buildLinkInput.value.trim();
-      const name = buildNameInput.value.trim() || `${className} • ${subclassName}`;
-      const notes = buildNotesInput.value.trim();
+  if (!currentUser) {
+    showStatus(statusMessage, "Tu dois être connecté.", "error");
+    console.error("Aucun utilisateur connecté");
+    return;
+  }
 
-      if (!link) {
-        showStatus(statusMessage, "Tu dois coller un lien.", "error");
-        return;
-      }
+  const className = buildClassSelect.value;
+  const subclassName = buildSubclassSelect.value;
+  const link = buildLinkInput.value.trim();
+  const name = buildNameInput.value.trim() || `${className} • ${subclassName}`;
+  const notes = buildNotesInput.value.trim();
 
-      if (!isValidLink(link)) {
-        showStatus(statusMessage, "Le lien n'est pas valide.", "error");
-        return;
-      }
+  console.log("Payload préparé :", {
+    name,
+    link,
+    class_name: className,
+    subclass_name: subclassName,
+    notes,
+    owner_id: currentUser.id
+  });
 
-      const { error } = await supabase.from("builds").insert({
-        name,
-        link,
-        class_name: className,
-        subclass_name: subclassName,
-        notes,
-        owner_id: currentUser.id
-      });
+  if (!link) {
+    showStatus(statusMessage, "Tu dois coller un lien.", "error");
+    console.error("Lien vide");
+    return;
+  }
 
-      if (error) {
-        console.error(error);
-        showStatus(statusMessage, "Erreur lors de l'ajout du build.", "error");
-        return;
-      }
+  if (!isValidLink(link)) {
+    showStatus(statusMessage, "Le lien n'est pas valide.", "error");
+    console.error("Lien invalide :", link);
+    return;
+  }
 
-      buildNameInput.value = "";
-      buildLinkInput.value = "";
-      buildNotesInput.value = "";
-      showStatus(statusMessage, "Build ajouté avec succès.", "success");
-      await loadBuilds();
-    }
+  const { data, error } = await supabase.from("builds").insert({
+    name,
+    link,
+    class_name: className,
+    subclass_name: subclassName,
+    notes,
+    owner_id: currentUser.id
+  }).select();
+
+  console.log("Résultat insert :", { data, error });
+
+  if (error) {
+    console.error("Erreur Supabase complète :", error);
+    showStatus(
+      statusMessage,
+      `Erreur ajout : ${error.message || "inconnue"}`,
+      "error"
+    );
+    return;
+  }
+
+  buildNameInput.value = "";
+  buildLinkInput.value = "";
+  buildNotesInput.value = "";
+
+  showStatus(statusMessage, "Build ajouté avec succès.", "success");
+  await loadBuilds();
+}
 
     function openLoginModal() {
       loginModal.classList.add("open");
