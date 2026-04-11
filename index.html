@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wynn Dashboard</title>
+  <style>
+    :root {
+      --bg: #0a1220;
+      --bg2: #0f172a;
+      --panel: #111c31;
+      --panel2: #16233d;
+      --border: #26344f;
+      --text: #e5eefc;
+      --muted: #94a3b8;
+      --blue: #3b82f6;
+      --blue2: #2563eb;
+      --danger: #ef4444;
+      --danger2: #dc2626;
+      --shadow: 0 18px 40px rgba(0,0,0,.28);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(59,130,246,.14), transparent 24%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(59,130,246,.28), rgba(37,99,235,.08));
+      border: 1px solid rgba(96,165,250,.28);
+      box-shadow: var(--shadow);
+      font-size: 24px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .panel {
+      background: rgba(17, 28, 49, 0.92);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      padding: 18px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat-sub {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .sidebar {
+      display: grid;
+      gap: 18px;
+      position: sticky;
+      top: 18px;
+    }
+
+    .section {
+      padding: 18px;
+    }
+
+    .section h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+
+    .helper {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .grid-fields {
+      display: grid;
+      gap: 10px;
+    }
+
+    input, select, button, a.button-link {
+      width: 100%;
+      height: 46px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    input, select {
+      background: var(--panel2);
+      color: var(--text);
+      padding: 0 14px;
+      outline: none;
+    }
+
+    input::placeholder {
+      color: #8192ac;
+    }
+
+    input:focus, select:focus {
+      border-color: #4d88f6;
+      box-shadow: 0 0 0 4px rgba(59,130,246,.14);
+    }
+
+    button, a.button-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      background: linear-gradient(180deg, var(--blue), var(--blue2));
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0 12px;
+      transition: .15s ease;
+    }
+
+    button:hover, a.button-link:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+    }
+
+    .btn-secondary {
+      background: #334155;
+    }
+
+    .btn-danger {
+      background: linear-gradient(180deg, var(--danger), var(--danger2));
+    }
+
+    .class-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .class-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(22,35,61,.7);
+    }
+
+    .class-row span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .main {
+      display: grid;
+      gap: 18px;
+    }
+
+    .toolbar {
+      padding: 16px 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .toolbar h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .toolbar p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      min-height: 32px;
+      padding: 6px 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: rgba(22,35,61,.85);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .build-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+      min-height: 290px;
+      background: linear-gradient(180deg, rgba(12,20,35,.96), rgba(10,17,29,.95));
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .date {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      min-height: 30px;
+      padding: 4px 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: rgba(59,130,246,.12);
+      border: 1px solid rgba(96,165,250,.22);
+      color: #dbeafe;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .info-box {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(22,35,61,.72);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .info-row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  font-size: 13px;
+}
+.info-box {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(22,35,61,.72);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.info-row > div:last-child {
+  min-width: 0;
+}
+    .info-label {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .mono {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  background: rgba(10,18,32,.65);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+    .note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .actions {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .actions button,
+    .actions a.button-link {
+      height: 42px;
+      min-width: 0;
+      font-size: 13px;
+    }
+
+    .empty {
+      padding: 50px 20px;
+      text-align: center;
+      border-radius: 20px;
+      border: 1px dashed var(--border);
+      color: var(--muted);
+    }
+
+    .empty h3 {
+      margin: 0 0 8px;
+      color: var(--text);
+      font-size: 20px;
+    }
+
+    .status {
+      margin-top: 10px;
+      min-height: 18px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .status.success {
+      color: #4ade80;
+    }
+
+    .status.error {
+      color: #f87171;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(2,6,23,.8);
+      z-index: 200;
+      padding: 18px;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-box {
+      width: min(1460px, 100%);
+      height: min(92vh, 980px);
+      background: rgba(10,18,32,.98);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-head {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .modal-head h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .modal-head p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .modal-actions button,
+    .modal-actions a.button-link {
+      width: auto;
+      min-width: 125px;
+      height: 42px;
+    }
+
+    .modal-body {
+      position: relative;
+      background: #0b1220;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .fallback {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      background: rgba(11,18,32,.97);
+      color: var(--muted);
+    }
+
+    .fallback.show {
+      display: flex;
+    }
+
+    .fallback-box {
+      max-width: 420px;
+      display: grid;
+      gap: 12px;
+      justify-items: center;
+    }
+
+    .fallback-box h4 {
+      margin: 0;
+      color: var(--text);
+      font-size: 22px;
+    }
+
+    @media (max-width: 1200px) {
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .container {
+        padding: 16px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .build-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <div class="logo">⚔️</div>
+        <div>
+          <h1>Wynn Dashboard</h1>
+          <p>Gestionnaire premium de builds WynnBuilder</p>
+        </div>
+      </div>
+
+      <button id="scrollToAddBtn" type="button" style="width:auto;min-width:170px;">Ajouter un build</button>
+    </div>
+
+    <section class="stats">
+      <div class="panel stat-card">
+        <div class="stat-label">Builds enregistrés</div>
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-sub">Tous les builds sauvegardés</div>
+      </div>
+      <div class="panel stat-card">
+        <div class="stat-label">Résultats affichés</div>
+        <div class="stat-value" id="statFiltered">0</div>
+        <div class="stat-sub">Après filtres</div>
+      </div>
+      <div class="panel stat-card">
+        <div class="stat-label">Classes utilisées</div>
+        <div class="stat-value" id="statClasses">0</div>
+        <div class="stat-sub">Classes différentes</div>
+      </div>
+      <div class="panel stat-card">
+        <div class="stat-label">Liens enregistrés</div>
+        <div class="stat-value" id="statLinks">0</div>
+        <div class="stat-sub">Builds avec lien</div>
+      </div>
+    </section>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <section class="panel section" id="addSection">
+          <h2>Ajouter un build</h2>
+
+          <div class="grid-fields">
+            <input id="buildName" type="text" placeholder="Nom du build (optionnel)" />
+            <input id="buildLink" type="text" placeholder="Lien WynnBuilder" />
+            <select id="buildClass"></select>
+            <select id="buildSubclass"></select>
+            <button id="addBuildBtn" type="button">Ajouter</button>
+          </div>
+
+          <div id="statusMessage" class="status"></div>
+
+          <p class="helper">
+            Colle un lien WynnBuilder complet. Exemple : <br>
+            <strong>https://...</strong>
+          </p>
+        </section>
+
+        <section class="panel section">
+          <h2>Filtres</h2>
+
+          <div class="grid-fields">
+            <input id="searchInput" type="text" placeholder="Rechercher..." />
+            <select id="filterClass">
+              <option value="all">Toutes les classes</option>
+            </select>
+            <select id="filterSubclass">
+              <option value="all">Toutes les sous-classes</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="panel section">
+          <h2>Répartition</h2>
+          <div id="classSummary" class="class-list"></div>
+        </section>
+      </aside>
+
+      <main class="main">
+        <section class="panel toolbar">
+          <div>
+            <h2>Mes builds</h2>
+            <p id="toolbarText">Aucun build pour le moment.</p>
+          </div>
+          <div id="activePills" class="pills"></div>
+        </section>
+
+        <section id="buildList" class="build-grid"></section>
+      </main>
+    </div>
+  </div>
+
+  <div id="previewModal" class="modal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <h3 id="modalTitle">Aperçu du build</h3>
+          <p>Stuff, stats, DPS, EHP et détails via WynnBuilder.</p>
+        </div>
+
+        <div class="modal-actions">
+          <a id="modalOpenLink" class="button-link btn-secondary" href="#" target="_blank" rel="noopener noreferrer">Ouvrir</a>
+          <button id="reloadPreviewBtn" type="button" class="btn-secondary">Recharger</button>
+          <button id="closePreviewBtn" type="button">Fermer</button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <iframe id="previewFrame" title="Preview WynnBuilder"></iframe>
+
+        <div id="previewFallback" class="fallback">
+          <div class="fallback-box">
+            <h4>Aperçu non affiché ici</h4>
+            <p>Ton navigateur bloque peut-être l’intégration. Ouvre directement le build.</p>
+            <a id="fallbackLink" class="button-link" href="#" target="_blank" rel="noopener noreferrer">Ouvrir le build</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "wynn_dashboard_simple_working_v1";
+
+    const CLASS_DATA = {
+      Warrior: ["Fallen", "Battle Monk", "Paladin"],
+      Archer: ["Boltslinger", "Trapper", "Sharpshooter"],
+      Mage: ["Light Bender", "Riftwalker", "Arcanist"],
+      Assassin: ["Shadestepper", "Trickster", "Acrobat"],
+      Shaman: ["Summoner", "Ritualist", "Acolyte"]
+    };
+
+    const buildNameInput = document.getElementById("buildName");
+    const buildLinkInput = document.getElementById("buildLink");
+    const buildClassSelect = document.getElementById("buildClass");
+    const buildSubclassSelect = document.getElementById("buildSubclass");
+    const addBuildBtn = document.getElementById("addBuildBtn");
+    const statusMessage = document.getElementById("statusMessage");
+
+    const searchInput = document.getElementById("searchInput");
+    const filterClassSelect = document.getElementById("filterClass");
+    const filterSubclassSelect = document.getElementById("filterSubclass");
+
+    const buildList = document.getElementById("buildList");
+    const classSummary = document.getElementById("classSummary");
+    const toolbarText = document.getElementById("toolbarText");
+    const activePills = document.getElementById("activePills");
+
+    const statTotal = document.getElementById("statTotal");
+    const statFiltered = document.getElementById("statFiltered");
+    const statClasses = document.getElementById("statClasses");
+    const statLinks = document.getElementById("statLinks");
+
+    const scrollToAddBtn = document.getElementById("scrollToAddBtn");
+
+    const previewModal = document.getElementById("previewModal");
+    const previewFrame = document.getElementById("previewFrame");
+    const previewFallback = document.getElementById("previewFallback");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalOpenLink = document.getElementById("modalOpenLink");
+    const fallbackLink = document.getElementById("fallbackLink");
+    const reloadPreviewBtn = document.getElementById("reloadPreviewBtn");
+    const closePreviewBtn = document.getElementById("closePreviewBtn");
+
+    function getBuilds() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveBuilds(builds) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(builds));
+    }
+
+    function createId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatDate(iso) {
+      try {
+        return new Date(iso).toLocaleDateString("fr-FR");
+      } catch {
+        return "-";
+      }
+    }
+
+    function populateClassOptions() {
+      buildClassSelect.innerHTML = "";
+      filterClassSelect.innerHTML = '<option value="all">Toutes les classes</option>';
+
+      Object.keys(CLASS_DATA).forEach(className => {
+        const opt1 = document.createElement("option");
+        opt1.value = className;
+        opt1.textContent = className;
+        buildClassSelect.appendChild(opt1);
+
+        const opt2 = document.createElement("option");
+        opt2.value = className;
+        opt2.textContent = className;
+        filterClassSelect.appendChild(opt2);
+      });
+
+      updateBuildSubclasses();
+      updateFilterSubclasses();
+    }
+
+    function updateBuildSubclasses() {
+      const className = buildClassSelect.value;
+      buildSubclassSelect.innerHTML = "";
+
+      (CLASS_DATA[className] || []).forEach(subclass => {
+        const opt = document.createElement("option");
+        opt.value = subclass;
+        opt.textContent = subclass;
+        buildSubclassSelect.appendChild(opt);
+      });
+    }
+
+    function updateFilterSubclasses() {
+      const className = filterClassSelect.value;
+      filterSubclassSelect.innerHTML = '<option value="all">Toutes les sous-classes</option>';
+
+      if (className === "all") return;
+
+      (CLASS_DATA[className] || []).forEach(subclass => {
+        const opt = document.createElement("option");
+        opt.value = subclass;
+        opt.textContent = subclass;
+        filterSubclassSelect.appendChild(opt);
+      });
+    }
+
+    function showStatus(text, type = "") {
+      statusMessage.textContent = text;
+      statusMessage.className = "status " + type;
+    }
+
+    function isValidLink(link) {
+      try {
+        const url = new URL(link);
+        return url.protocol === "https:" || url.protocol === "http:";
+      } catch {
+        return false;
+      }
+    }
+
+    function addBuild() {
+      const className = buildClassSelect.value;
+      const subclassName = buildSubclassSelect.value;
+      const link = buildLinkInput.value.trim();
+      const name = buildNameInput.value.trim() || `${className} • ${subclassName}`;
+
+      if (!link) {
+        showStatus("Tu dois coller un lien.", "error");
+        return;
+      }
+
+      if (!isValidLink(link)) {
+        showStatus("Le lien n'est pas valide. Il doit commencer par http:// ou https://", "error");
+        return;
+      }
+
+      const builds = getBuilds();
+
+      builds.unshift({
+        id: createId(),
+        name,
+        link,
+        className,
+        subclassName,
+        createdAt: new Date().toISOString()
+      });
+
+      saveBuilds(builds);
+
+      buildNameInput.value = "";
+      buildLinkInput.value = "";
+      showStatus("Build ajouté avec succès.", "success");
+
+      render();
+    }
+
+    function renameBuild(id) {
+      const builds = getBuilds();
+      const index = builds.findIndex(b => b.id === id);
+      if (index === -1) return;
+
+      const nextName = prompt("Nouveau nom :", builds[index].name);
+      if (nextName === null) return;
+
+      const clean = nextName.trim();
+      if (!clean) return;
+
+      builds[index].name = clean;
+      saveBuilds(builds);
+      render();
+    }
+
+    function editLink(id) {
+      const builds = getBuilds();
+      const index = builds.findIndex(b => b.id === id);
+      if (index === -1) return;
+
+      const nextLink = prompt("Modifier le lien :", builds[index].link);
+      if (nextLink === null) return;
+
+      const clean = nextLink.trim();
+      if (!isValidLink(clean)) {
+        alert("Lien invalide.");
+        return;
+      }
+
+      builds[index].link = clean;
+      saveBuilds(builds);
+      render();
+    }
+
+    function deleteBuild(id) {
+      const builds = getBuilds();
+      const target = builds.find(b => b.id === id);
+      if (!target) return;
+
+      if (!confirm(`Supprimer "${target.name}" ?`)) return;
+
+      saveBuilds(builds.filter(b => b.id !== id));
+      render();
+    }
+
+    async function copyLink(link) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(link);
+        } else {
+          const temp = document.createElement("textarea");
+          temp.value = link;
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand("copy");
+          temp.remove();
+        }
+        alert("Lien copié.");
+      } catch {
+        alert("Impossible de copier le lien.");
+      }
+    }
+
+    function getHash(link) {
+      try {
+        const url = new URL(link);
+        return url.hash ? url.hash.slice(1) : "Aucun hash";
+      } catch {
+        return "Hash indisponible";
+      }
+    }
+
+    function getFilteredBuilds() {
+      const all = getBuilds();
+      const search = searchInput.value.trim().toLowerCase();
+      const classFilter = filterClassSelect.value;
+      const subclassFilter = filterSubclassSelect.value;
+
+      return all.filter(build => {
+        const matchesSearch =
+          build.name.toLowerCase().includes(search) ||
+          build.className.toLowerCase().includes(search) ||
+          build.subclassName.toLowerCase().includes(search);
+
+        const matchesClass = classFilter === "all" || build.className === classFilter;
+        const matchesSubclass = subclassFilter === "all" || build.subclassName === subclassFilter;
+
+        return matchesSearch && matchesClass && matchesSubclass;
+      });
+    }
+
+    function findBuild(id) {
+      return getBuilds().find(b => b.id === id) || null;
+    }
+
+    function openPreview(id) {
+      const build = findBuild(id);
+      if (!build) return;
+
+      modalTitle.textContent = `${build.name} — ${build.className} / ${build.subclassName}`;
+      modalOpenLink.href = build.link;
+      fallbackLink.href = build.link;
+      previewFrame.src = build.link;
+      previewFallback.classList.remove("show");
+      previewModal.classList.add("open");
+
+      clearTimeout(openPreview._timer);
+      openPreview._timer = setTimeout(() => {
+        previewFallback.classList.add("show");
+      }, 3000);
+    }
+
+    function closePreview() {
+      previewModal.classList.remove("open");
+      previewFrame.src = "about:blank";
+      previewFallback.classList.remove("show");
+      clearTimeout(openPreview._timer);
+    }
+
+    function reloadPreview() {
+      const link = modalOpenLink.href;
+      if (!link) return;
+
+      previewFallback.classList.remove("show");
+      previewFrame.src = "about:blank";
+
+      setTimeout(() => {
+        previewFrame.src = link;
+        openPreview._timer = setTimeout(() => {
+          previewFallback.classList.add("show");
+        }, 3000);
+      }, 80);
+    }
+
+    function renderStats(allBuilds, filteredBuilds) {
+      statTotal.textContent = allBuilds.length;
+      statFiltered.textContent = filteredBuilds.length;
+      statClasses.textContent = new Set(allBuilds.map(b => b.className)).size;
+      statLinks.textContent = allBuilds.filter(b => b.link).length;
+    }
+
+    function renderClassSummary(allBuilds) {
+      classSummary.innerHTML = "";
+
+      Object.keys(CLASS_DATA).forEach(className => {
+        const total = allBuilds.filter(b => b.className === className).length;
+        const div = document.createElement("div");
+        div.className = "class-row";
+        div.innerHTML = `<strong>${escapeHtml(className)}</strong><span>${total} build(s)</span>`;
+        classSummary.appendChild(div);
+      });
+    }
+
+    function renderToolbar(filteredBuilds) {
+      toolbarText.textContent = filteredBuilds.length
+        ? `${filteredBuilds.length} build(s) affiché(s).`
+        : "Aucun build ne correspond aux filtres actuels.";
+
+      activePills.innerHTML = "";
+
+      const pills = [];
+      if (searchInput.value.trim()) pills.push(`Recherche : ${searchInput.value.trim()}`);
+      if (filterClassSelect.value !== "all") pills.push(`Classe : ${filterClassSelect.value}`);
+      if (filterSubclassSelect.value !== "all") pills.push(`Sous-classe : ${filterSubclassSelect.value}`);
+      if (!pills.length) pills.push("Aucun filtre actif");
+
+      pills.forEach(text => {
+        const div = document.createElement("div");
+        div.className = "pill";
+        div.textContent = text;
+        activePills.appendChild(div);
+      });
+    }
+
+    function renderBuilds(filteredBuilds) {
+      buildList.innerHTML = "";
+
+      if (!filteredBuilds.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty panel";
+        empty.innerHTML = `
+          <h3>Aucun build trouvé</h3>
+          <p>Ajoute un build ou modifie les filtres.</p>
+        `;
+        buildList.appendChild(empty);
+        return;
+      }
+
+      filteredBuilds.forEach(build => {
+        const card = document.createElement("article");
+        card.className = "card panel";
+
+        card.innerHTML = `
+          <div>
+            <h3>${escapeHtml(build.name)}</h3>
+            <div class="date">Ajouté le ${escapeHtml(formatDate(build.createdAt))}</div>
+          </div>
+
+          <div class="badges">
+            <span class="badge">${escapeHtml(build.className)}</span>
+            <span class="badge">${escapeHtml(build.subclassName)}</span>
+          </div>
+
+          <div class="info-box">
+            <div class="info-row">
+              <div class="info-label">Lien</div>
+              <div><span class="mono" title="${escapeHtml(build.link)}">${escapeHtml(build.link)}</span></div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Hash</div>
+              <div><span class="mono" title="${escapeHtml(getHash(build.link))}">${escapeHtml(getHash(build.link))}</span></div>
+            </div>
+          </div>
+
+          <div class="note">
+            Clique sur <strong>Aperçu</strong> pour voir le build WynnBuilder avec ses stats.
+          </div>
+        `;
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const previewBtn = document.createElement("button");
+        previewBtn.type = "button";
+        previewBtn.textContent = "Aperçu";
+        previewBtn.addEventListener("click", () => openPreview(build.id));
+
+        const openBtn = document.createElement("a");
+        openBtn.className = "button-link btn-secondary";
+        openBtn.href = build.link;
+        openBtn.target = "_blank";
+        openBtn.rel = "noopener noreferrer";
+        openBtn.textContent = "Ouvrir";
+
+        const copyBtn = document.createElement("button");
+        copyBtn.type = "button";
+        copyBtn.className = "btn-secondary";
+        copyBtn.textContent = "Copier";
+        copyBtn.addEventListener("click", () => copyLink(build.link));
+
+        const renameBtn = document.createElement("button");
+        renameBtn.type = "button";
+        renameBtn.className = "btn-secondary";
+        renameBtn.textContent = "Renommer";
+        renameBtn.addEventListener("click", () => renameBuild(build.id));
+
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "btn-secondary";
+        editBtn.textContent = "Lien";
+        editBtn.addEventListener("click", () => editLink(build.id));
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "btn-danger";
+        deleteBtn.textContent = "Supprimer";
+        deleteBtn.addEventListener("click", () => deleteBuild(build.id));
+
+        actions.appendChild(previewBtn);
+        actions.appendChild(openBtn);
+        actions.appendChild(copyBtn);
+        actions.appendChild(renameBtn);
+        actions.appendChild(editBtn);
+        actions.appendChild(deleteBtn);
+
+        card.appendChild(actions);
+        buildList.appendChild(card);
+      });
+    }
+
+    function render() {
+      const allBuilds = getBuilds();
+      const filteredBuilds = getFilteredBuilds();
+
+      renderStats(allBuilds, filteredBuilds);
+      renderClassSummary(allBuilds);
+      renderToolbar(filteredBuilds);
+      renderBuilds(filteredBuilds);
+    }
+
+    function bindEvents() {
+      buildClassSelect.addEventListener("change", updateBuildSubclasses);
+
+      filterClassSelect.addEventListener("change", () => {
+        updateFilterSubclasses();
+        render();
+      });
+
+      filterSubclassSelect.addEventListener("change", render);
+      searchInput.addEventListener("input", render);
+
+      addBuildBtn.addEventListener("click", addBuild);
+
+      buildNameInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") addBuild();
+      });
+
+      buildLinkInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") addBuild();
+      });
+
+      scrollToAddBtn.addEventListener("click", () => {
+        document.getElementById("addSection").scrollIntoView({ behavior: "smooth", block: "start" });
+        buildLinkInput.focus();
+      });
+
+      closePreviewBtn.addEventListener("click", closePreview);
+      reloadPreviewBtn.addEventListener("click", reloadPreview);
+
+      previewModal.addEventListener("click", (e) => {
+        if (e.target === previewModal) closePreview();
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && previewModal.classList.contains("open")) {
+          closePreview();
+        }
+      });
+
+      previewFrame.addEventListener("load", () => {
+        previewFallback.classList.remove("show");
+        clearTimeout(openPreview._timer);
+      });
+    }
+
+    function init() {
+      populateClassOptions();
+      bindEvents();
+      render();
+    }
+
+    init();
+  </script>
+</body>
+</html>
