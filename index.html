@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wynn Dashboard</title>
+
   <style>
     :root {
       --bg: #0a1220;
@@ -17,6 +18,8 @@
       --blue2: #2563eb;
       --danger: #ef4444;
       --danger2: #dc2626;
+      --success: #22c55e;
+      --success2: #16a34a;
       --shadow: 0 18px 40px rgba(0,0,0,.28);
       --radius: 18px;
     }
@@ -76,6 +79,25 @@
       margin: 6px 0 0;
       color: var(--muted);
       font-size: 14px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .user-badge {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(22,35,61,.8);
+      color: var(--muted);
+      font-size: 13px;
     }
 
     .panel {
@@ -149,19 +171,29 @@
       gap: 10px;
     }
 
-    input, select, button, a.button-link {
+    input, select, textarea, button, a.button-link {
       width: 100%;
-      height: 46px;
       border-radius: 12px;
       border: 1px solid var(--border);
       font-size: 14px;
+      font-family: inherit;
     }
 
     input, select {
+      height: 46px;
       background: var(--panel2);
       color: var(--text);
       padding: 0 14px;
       outline: none;
+    }
+
+    textarea {
+      min-height: 140px;
+      background: var(--panel2);
+      color: var(--text);
+      padding: 12px 14px;
+      outline: none;
+      resize: vertical;
     }
 
     input::placeholder,
@@ -169,12 +201,13 @@
       color: #8192ac;
     }
 
-    input:focus, select:focus {
+    input:focus, select:focus, textarea:focus {
       border-color: #4d88f6;
       box-shadow: 0 0 0 4px rgba(59,130,246,.14);
     }
 
     button, a.button-link {
+      height: 46px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -198,6 +231,10 @@
 
     .btn-danger {
       background: linear-gradient(180deg, var(--danger), var(--danger2));
+    }
+
+    .btn-success {
+      background: linear-gradient(180deg, var(--success), var(--success2));
     }
 
     .class-list {
@@ -275,7 +312,7 @@
       padding: 16px;
       display: grid;
       gap: 14px;
-      min-height: 340px;
+      min-height: 360px;
       background: linear-gradient(180deg, rgba(12,20,35,.96), rgba(10,17,29,.95));
     }
 
@@ -287,6 +324,12 @@
     }
 
     .date {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .owner {
       margin-top: 6px;
       color: var(--muted);
       font-size: 12px;
@@ -435,6 +478,10 @@
       color: #f87171;
     }
 
+    .hidden {
+      display: none !important;
+    }
+
     .modal {
       position: fixed;
       inset: 0;
@@ -451,15 +498,22 @@
     }
 
     .modal-box {
-      width: min(1460px, 100%);
-      height: min(92vh, 980px);
+      width: min(760px, 100%);
+      max-height: 92vh;
+      overflow: auto;
       background: rgba(10,18,32,.98);
       border: 1px solid var(--border);
       border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-box.large {
+      width: min(1460px, 100%);
+      height: min(92vh, 980px);
+      padding: 0;
       overflow: hidden;
       display: grid;
       grid-template-rows: auto 1fr;
-      box-shadow: var(--shadow);
     }
 
     .modal-head {
@@ -497,8 +551,15 @@
     }
 
     .modal-body {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .modal-body.preview-body {
       position: relative;
       background: #0b1220;
+      padding: 0;
     }
 
     iframe {
@@ -576,18 +637,23 @@
         <div class="logo">⚔️</div>
         <div>
           <h1>Wynn Dashboard</h1>
-          <p>Gestionnaire premium de builds WynnBuilder</p>
+          <p>Builds publics, gestion réservée aux comptes connectés</p>
         </div>
       </div>
 
-      <button id="scrollToAddBtn" type="button" style="width:auto;min-width:170px;">Ajouter un build</button>
+      <div class="header-actions">
+        <div id="userBadge" class="user-badge">Non connecté</div>
+        <button id="loginBtn" type="button" style="width:auto;min-width:150px;">Connexion admin</button>
+        <button id="logoutBtn" type="button" class="btn-secondary hidden" style="width:auto;min-width:120px;">Déconnexion</button>
+        <button id="scrollToAddBtn" type="button" class="hidden" style="width:auto;min-width:170px;">Ajouter un build</button>
+      </div>
     </div>
 
     <section class="stats">
       <div class="panel stat-card">
         <div class="stat-label">Builds enregistrés</div>
         <div class="stat-value" id="statTotal">0</div>
-        <div class="stat-sub">Tous les builds sauvegardés</div>
+        <div class="stat-sub">Tous les builds sauvegardés en ligne</div>
       </div>
       <div class="panel stat-card">
         <div class="stat-label">Résultats affichés</div>
@@ -600,15 +666,15 @@
         <div class="stat-sub">Classes différentes</div>
       </div>
       <div class="panel stat-card">
-        <div class="stat-label">Liens enregistrés</div>
-        <div class="stat-value" id="statLinks">0</div>
-        <div class="stat-sub">Builds avec lien</div>
+        <div class="stat-label">Comptes éditeurs</div>
+        <div class="stat-value" id="statEditors">0</div>
+        <div class="stat-sub">Utilisateurs ayant publié des builds</div>
       </div>
     </section>
 
     <div class="layout">
       <aside class="sidebar">
-        <section class="panel section" id="addSection">
+        <section class="panel section hidden" id="addSection">
           <h2>Ajouter un build</h2>
 
           <div class="grid-fields">
@@ -616,14 +682,14 @@
             <input id="buildLink" type="text" placeholder="Lien WynnBuilder" />
             <select id="buildClass"></select>
             <select id="buildSubclass"></select>
+            <textarea id="buildNotes" placeholder="Informations, cycle, conseils, remarques..."></textarea>
             <button id="addBuildBtn" type="button">Ajouter</button>
           </div>
 
           <div id="statusMessage" class="status"></div>
 
           <p class="helper">
-            Colle un lien WynnBuilder complet. Exemple : <br>
-            <strong>https://...</strong>
+            Cette zone n’est visible que pour les comptes connectés.
           </p>
         </section>
 
@@ -651,7 +717,7 @@
         <section class="panel toolbar">
           <div>
             <h2>Mes builds</h2>
-            <p id="toolbarText">Aucun build pour le moment.</p>
+            <p id="toolbarText">Chargement...</p>
           </div>
           <div id="activePills" class="pills"></div>
         </section>
@@ -661,8 +727,60 @@
     </div>
   </div>
 
-  <div id="previewModal" class="modal">
+  <!-- LOGIN MODAL -->
+  <div id="loginModal" class="modal">
     <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <h3>Connexion admin</h3>
+          <p>Connecte-toi avec ton compte Supabase.</p>
+        </div>
+        <div class="modal-actions">
+          <button id="closeLoginModalBtn" type="button" class="btn-secondary">Fermer</button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <div class="grid-fields">
+          <input id="loginEmail" type="email" placeholder="Email" />
+          <input id="loginPassword" type="password" placeholder="Mot de passe" />
+          <button id="submitLoginBtn" type="button">Se connecter</button>
+        </div>
+        <div id="loginStatus" class="status"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT MODAL -->
+  <div id="editModal" class="modal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <h3>Modifier le build</h3>
+          <p>Nom, lien, classe, sous-classe et informations.</p>
+        </div>
+        <div class="modal-actions">
+          <button id="closeEditModalBtn" type="button" class="btn-secondary">Fermer</button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <div class="grid-fields">
+          <input id="editName" type="text" placeholder="Nom du build" />
+          <input id="editLink" type="text" placeholder="Lien WynnBuilder" />
+          <select id="editClass"></select>
+          <select id="editSubclass"></select>
+          <textarea id="editNotes" placeholder="Informations, cycle, conseils..."></textarea>
+          <button id="saveEditBtn" type="button">Enregistrer</button>
+        </div>
+        <div id="editStatus" class="status"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREVIEW MODAL -->
+  <div id="previewModal" class="modal">
+    <div class="modal-box large">
       <div class="modal-head">
         <div>
           <h3 id="modalTitle">Aperçu du build</h3>
@@ -676,7 +794,7 @@
         </div>
       </div>
 
-      <div class="modal-body">
+      <div class="modal-body preview-body">
         <iframe id="previewFrame" title="Preview WynnBuilder"></iframe>
 
         <div id="previewFallback" class="fallback">
@@ -690,8 +808,13 @@
     </div>
   </div>
 
-  <script>
-    const STORAGE_KEY = "wynn_dashboard_simple_working_v2";
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    const SUPABASE_URL = "https://tceawcjiusgqmxwoncqc.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_4B09BmruYat2f2tY_s4XQQ_dzfOII_w";
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const CLASS_DATA = {
       Warrior: ["Fallen", "Battle Monk", "Paladin"],
@@ -701,10 +824,22 @@
       Shaman: ["Summoner", "Ritualist", "Acolyte"]
     };
 
+    let allBuilds = [];
+    let currentUser = null;
+    let editingBuildId = null;
+
+    // Elements
+    const userBadge = document.getElementById("userBadge");
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const scrollToAddBtn = document.getElementById("scrollToAddBtn");
+    const addSection = document.getElementById("addSection");
+
     const buildNameInput = document.getElementById("buildName");
     const buildLinkInput = document.getElementById("buildLink");
     const buildClassSelect = document.getElementById("buildClass");
     const buildSubclassSelect = document.getElementById("buildSubclass");
+    const buildNotesInput = document.getElementById("buildNotes");
     const addBuildBtn = document.getElementById("addBuildBtn");
     const statusMessage = document.getElementById("statusMessage");
 
@@ -720,10 +855,28 @@
     const statTotal = document.getElementById("statTotal");
     const statFiltered = document.getElementById("statFiltered");
     const statClasses = document.getElementById("statClasses");
-    const statLinks = document.getElementById("statLinks");
+    const statEditors = document.getElementById("statEditors");
 
-    const scrollToAddBtn = document.getElementById("scrollToAddBtn");
+    // Login modal
+    const loginModal = document.getElementById("loginModal");
+    const loginEmail = document.getElementById("loginEmail");
+    const loginPassword = document.getElementById("loginPassword");
+    const submitLoginBtn = document.getElementById("submitLoginBtn");
+    const closeLoginModalBtn = document.getElementById("closeLoginModalBtn");
+    const loginStatus = document.getElementById("loginStatus");
 
+    // Edit modal
+    const editModal = document.getElementById("editModal");
+    const editName = document.getElementById("editName");
+    const editLink = document.getElementById("editLink");
+    const editClass = document.getElementById("editClass");
+    const editSubclass = document.getElementById("editSubclass");
+    const editNotes = document.getElementById("editNotes");
+    const saveEditBtn = document.getElementById("saveEditBtn");
+    const closeEditModalBtn = document.getElementById("closeEditModalBtn");
+    const editStatus = document.getElementById("editStatus");
+
+    // Preview modal
     const previewModal = document.getElementById("previewModal");
     const previewFrame = document.getElementById("previewFrame");
     const previewFallback = document.getElementById("previewFallback");
@@ -733,25 +886,8 @@
     const reloadPreviewBtn = document.getElementById("reloadPreviewBtn");
     const closePreviewBtn = document.getElementById("closePreviewBtn");
 
-    function getBuilds() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch {
-        return [];
-      }
-    }
-
-    function saveBuilds(builds) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(builds));
-    }
-
-    function createId() {
-      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-    }
-
     function escapeHtml(text) {
-      return String(text)
+      return String(text ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
@@ -767,8 +903,32 @@
       }
     }
 
+    function showStatus(target, text, type = "") {
+      target.textContent = text;
+      target.className = "status " + type;
+    }
+
+    function isValidLink(link) {
+      try {
+        const url = new URL(link);
+        return url.protocol === "https:" || url.protocol === "http:";
+      } catch {
+        return false;
+      }
+    }
+
+    function getHash(link) {
+      try {
+        const url = new URL(link);
+        return url.hash ? url.hash.slice(1) : "Aucun hash";
+      } catch {
+        return "Hash indisponible";
+      }
+    }
+
     function populateClassOptions() {
       buildClassSelect.innerHTML = "";
+      editClass.innerHTML = "";
       filterClassSelect.innerHTML = '<option value="all">Toutes les classes</option>';
 
       Object.keys(CLASS_DATA).forEach(className => {
@@ -780,10 +940,16 @@
         const opt2 = document.createElement("option");
         opt2.value = className;
         opt2.textContent = className;
-        filterClassSelect.appendChild(opt2);
+        editClass.appendChild(opt2);
+
+        const opt3 = document.createElement("option");
+        opt3.value = className;
+        opt3.textContent = className;
+        filterClassSelect.appendChild(opt3);
       });
 
       updateBuildSubclasses();
+      updateEditSubclasses();
       updateFilterSubclasses();
     }
 
@@ -796,6 +962,18 @@
         opt.value = subclass;
         opt.textContent = subclass;
         buildSubclassSelect.appendChild(opt);
+      });
+    }
+
+    function updateEditSubclasses() {
+      const className = editClass.value;
+      editSubclass.innerHTML = "";
+
+      (CLASS_DATA[className] || []).forEach(subclass => {
+        const opt = document.createElement("option");
+        opt.value = subclass;
+        opt.textContent = subclass;
+        editSubclass.appendChild(opt);
       });
     }
 
@@ -813,173 +991,266 @@
       });
     }
 
-    function showStatus(text, type = "") {
-      statusMessage.textContent = text;
-      statusMessage.className = "status " + type;
+    function updateAuthUI() {
+      const loggedIn = !!currentUser;
+
+      userBadge.textContent = loggedIn
+        ? `Connecté : ${currentUser.email}`
+        : "Non connecté";
+
+      loginBtn.classList.toggle("hidden", loggedIn);
+      logoutBtn.classList.toggle("hidden", !loggedIn);
+      scrollToAddBtn.classList.toggle("hidden", !loggedIn);
+      addSection.classList.toggle("hidden", !loggedIn);
     }
 
-    function isValidLink(link) {
-      try {
-        const url = new URL(link);
-        return url.protocol === "https:" || url.protocol === "http:";
-      } catch {
-        return false;
+    async function fetchCurrentUser() {
+      const { data } = await supabase.auth.getUser();
+      currentUser = data.user ?? null;
+      updateAuthUI();
+    }
+
+    async function loadBuilds() {
+      const { data, error } = await supabase
+        .from("builds")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        toolbarText.textContent = "Erreur de chargement des builds.";
+        console.error(error);
+        return;
       }
+
+      allBuilds = data || [];
+      render();
     }
 
-    function addBuild() {
+    async function addBuild() {
+      if (!currentUser) {
+        showStatus(statusMessage, "Tu dois être connecté.", "error");
+        return;
+      }
+
       const className = buildClassSelect.value;
       const subclassName = buildSubclassSelect.value;
       const link = buildLinkInput.value.trim();
       const name = buildNameInput.value.trim() || `${className} • ${subclassName}`;
+      const notes = buildNotesInput.value.trim();
 
       if (!link) {
-        showStatus("Tu dois coller un lien.", "error");
+        showStatus(statusMessage, "Tu dois coller un lien.", "error");
         return;
       }
 
       if (!isValidLink(link)) {
-        showStatus("Le lien n'est pas valide. Il doit commencer par http:// ou https://", "error");
+        showStatus(statusMessage, "Le lien n'est pas valide.", "error");
         return;
       }
 
-      const builds = getBuilds();
-
-      builds.unshift({
-        id: createId(),
+      const { error } = await supabase.from("builds").insert({
         name,
         link,
-        className,
-        subclassName,
-        notes: "",
-        createdAt: new Date().toISOString()
+        class_name: className,
+        subclass_name: subclassName,
+        notes,
+        owner_id: currentUser.id
       });
 
-      saveBuilds(builds);
+      if (error) {
+        console.error(error);
+        showStatus(statusMessage, "Erreur lors de l'ajout du build.", "error");
+        return;
+      }
 
       buildNameInput.value = "";
       buildLinkInput.value = "";
-      showStatus("Build ajouté avec succès.", "success");
-
-      render();
+      buildNotesInput.value = "";
+      showStatus(statusMessage, "Build ajouté avec succès.", "success");
+      await loadBuilds();
     }
 
-    function renameBuild(id) {
-      const builds = getBuilds();
-      const index = builds.findIndex(b => b.id === id);
-      if (index === -1) return;
-
-      const nextName = prompt("Nouveau nom :", builds[index].name);
-      if (nextName === null) return;
-
-      const clean = nextName.trim();
-      if (!clean) return;
-
-      builds[index].name = clean;
-      saveBuilds(builds);
-      render();
+    function openLoginModal() {
+      loginModal.classList.add("open");
+      loginStatus.textContent = "";
+      loginEmail.focus();
     }
 
-    function editLink(id) {
-      const builds = getBuilds();
-      const index = builds.findIndex(b => b.id === id);
-      if (index === -1) return;
+    function closeLoginModal() {
+      loginModal.classList.remove("open");
+    }
 
-      const nextLink = prompt("Modifier le lien :", builds[index].link);
-      if (nextLink === null) return;
+    async function login() {
+      const email = loginEmail.value.trim();
+      const password = loginPassword.value;
 
-      const clean = nextLink.trim();
-      if (!isValidLink(clean)) {
-        alert("Lien invalide.");
+      if (!email || !password) {
+        showStatus(loginStatus, "Email et mot de passe requis.", "error");
         return;
       }
 
-      builds[index].link = clean;
-      saveBuilds(builds);
-      render();
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        console.error(error);
+        showStatus(loginStatus, "Connexion impossible.", "error");
+        return;
+      }
+
+      loginEmail.value = "";
+      loginPassword.value = "";
+      closeLoginModal();
+      await fetchCurrentUser();
+      await loadBuilds();
     }
 
-    function editNotes(id) {
-      const builds = getBuilds();
-      const index = builds.findIndex(b => b.id === id);
-      if (index === -1) return;
-
-      const currentNotes = builds[index].notes || "";
-      const nextNotes = prompt("Modifier les informations du build :", currentNotes);
-
-      if (nextNotes === null) return;
-
-      builds[index].notes = nextNotes.trim();
-      saveBuilds(builds);
-      render();
+    async function logout() {
+      await supabase.auth.signOut();
+      currentUser = null;
+      updateAuthUI();
+      await loadBuilds();
     }
 
-    function deleteBuild(id) {
-      const builds = getBuilds();
-      const target = builds.find(b => b.id === id);
-      if (!target) return;
+    function openEditModal(build) {
+      editingBuildId = build.id;
+      editName.value = build.name || "";
+      editLink.value = build.link || "";
+      editClass.value = build.class_name || "Warrior";
+      updateEditSubclasses();
+      editSubclass.value = build.subclass_name || "";
+      editNotes.value = build.notes || "";
+      editStatus.textContent = "";
+      editModal.classList.add("open");
+    }
 
-      if (!confirm(`Supprimer "${target.name}" ?`)) return;
+    function closeEditModal() {
+      editModal.classList.remove("open");
+      editingBuildId = null;
+    }
 
-      saveBuilds(builds.filter(b => b.id !== id));
-      render();
+    async function saveEdit() {
+      if (!currentUser || !editingBuildId) return;
+
+      const payload = {
+        name: editName.value.trim(),
+        link: editLink.value.trim(),
+        class_name: editClass.value,
+        subclass_name: editSubclass.value,
+        notes: editNotes.value.trim()
+      };
+
+      if (!payload.name) {
+        showStatus(editStatus, "Le nom est requis.", "error");
+        return;
+      }
+
+      if (!isValidLink(payload.link)) {
+        showStatus(editStatus, "Lien invalide.", "error");
+        return;
+      }
+
+      const { error } = await supabase
+        .from("builds")
+        .update(payload)
+        .eq("id", editingBuildId);
+
+      if (error) {
+        console.error(error);
+        showStatus(editStatus, "Modification impossible.", "error");
+        return;
+      }
+
+      closeEditModal();
+      await loadBuilds();
+    }
+
+    async function deleteBuild(id) {
+      if (!currentUser) return;
+      if (!confirm("Supprimer ce build ?")) return;
+
+      const { error } = await supabase
+        .from("builds")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        console.error(error);
+        alert("Suppression impossible.");
+        return;
+      }
+
+      await loadBuilds();
     }
 
     async function copyLink(link) {
       try {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(link);
-        } else {
-          const temp = document.createElement("textarea");
-          temp.value = link;
-          document.body.appendChild(temp);
-          temp.select();
-          document.execCommand("copy");
-          temp.remove();
-        }
+        await navigator.clipboard.writeText(link);
         alert("Lien copié.");
       } catch {
         alert("Impossible de copier le lien.");
       }
     }
 
-    function getHash(link) {
-      try {
-        const url = new URL(link);
-        return url.hash ? url.hash.slice(1) : "Aucun hash";
-      } catch {
-        return "Hash indisponible";
-      }
-    }
-
     function getFilteredBuilds() {
-      const all = getBuilds();
       const search = searchInput.value.trim().toLowerCase();
       const classFilter = filterClassSelect.value;
       const subclassFilter = filterSubclassSelect.value;
 
-      return all.filter(build => {
-        const matchesSearch =
-          build.name.toLowerCase().includes(search) ||
-          build.className.toLowerCase().includes(search) ||
-          build.subclassName.toLowerCase().includes(search);
+      return allBuilds.filter(build => {
+        const searchOk =
+          (build.name || "").toLowerCase().includes(search) ||
+          (build.class_name || "").toLowerCase().includes(search) ||
+          (build.subclass_name || "").toLowerCase().includes(search);
 
-        const matchesClass = classFilter === "all" || build.className === classFilter;
-        const matchesSubclass = subclassFilter === "all" || build.subclassName === subclassFilter;
+        const classOk = classFilter === "all" || build.class_name === classFilter;
+        const subclassOk = subclassFilter === "all" || build.subclass_name === subclassFilter;
 
-        return matchesSearch && matchesClass && matchesSubclass;
+        return searchOk && classOk && subclassOk;
       });
     }
 
-    function findBuild(id) {
-      return getBuilds().find(b => b.id === id) || null;
+    function renderStats(filteredBuilds) {
+      statTotal.textContent = allBuilds.length;
+      statFiltered.textContent = filteredBuilds.length;
+      statClasses.textContent = new Set(allBuilds.map(b => b.class_name)).size;
+      statEditors.textContent = new Set(allBuilds.map(b => b.owner_id).filter(Boolean)).size;
     }
 
-    function openPreview(id) {
-      const build = findBuild(id);
-      if (!build) return;
+    function renderClassSummary() {
+      classSummary.innerHTML = "";
 
-      modalTitle.textContent = `${build.name} — ${build.className} / ${build.subclassName}`;
+      Object.keys(CLASS_DATA).forEach(className => {
+        const total = allBuilds.filter(b => b.class_name === className).length;
+        const div = document.createElement("div");
+        div.className = "class-row";
+        div.innerHTML = `<strong>${escapeHtml(className)}</strong><span>${total} build(s)</span>`;
+        classSummary.appendChild(div);
+      });
+    }
+
+    function renderToolbar(filteredBuilds) {
+      toolbarText.textContent = filteredBuilds.length
+        ? `${filteredBuilds.length} build(s) affiché(s).`
+        : "Aucun build ne correspond aux filtres actuels.";
+
+      activePills.innerHTML = "";
+
+      const pills = [];
+      if (searchInput.value.trim()) pills.push(`Recherche : ${searchInput.value.trim()}`);
+      if (filterClassSelect.value !== "all") pills.push(`Classe : ${filterClassSelect.value}`);
+      if (filterSubclassSelect.value !== "all") pills.push(`Sous-classe : ${filterSubclassSelect.value}`);
+      if (!pills.length) pills.push("Aucun filtre actif");
+
+      pills.forEach(text => {
+        const div = document.createElement("div");
+        div.className = "pill";
+        div.textContent = text;
+        activePills.appendChild(div);
+      });
+    }
+
+    function openPreview(build) {
+      modalTitle.textContent = `${build.name} — ${build.class_name} / ${build.subclass_name}`;
       modalOpenLink.href = build.link;
       fallbackLink.href = build.link;
       previewFrame.src = build.link;
@@ -1014,46 +1285,6 @@
       }, 80);
     }
 
-    function renderStats(allBuilds, filteredBuilds) {
-      statTotal.textContent = allBuilds.length;
-      statFiltered.textContent = filteredBuilds.length;
-      statClasses.textContent = new Set(allBuilds.map(b => b.className)).size;
-      statLinks.textContent = allBuilds.filter(b => b.link).length;
-    }
-
-    function renderClassSummary(allBuilds) {
-      classSummary.innerHTML = "";
-
-      Object.keys(CLASS_DATA).forEach(className => {
-        const total = allBuilds.filter(b => b.className === className).length;
-        const div = document.createElement("div");
-        div.className = "class-row";
-        div.innerHTML = `<strong>${escapeHtml(className)}</strong><span>${total} build(s)</span>`;
-        classSummary.appendChild(div);
-      });
-    }
-
-    function renderToolbar(filteredBuilds) {
-      toolbarText.textContent = filteredBuilds.length
-        ? `${filteredBuilds.length} build(s) affiché(s).`
-        : "Aucun build ne correspond aux filtres actuels.";
-
-      activePills.innerHTML = "";
-
-      const pills = [];
-      if (searchInput.value.trim()) pills.push(`Recherche : ${searchInput.value.trim()}`);
-      if (filterClassSelect.value !== "all") pills.push(`Classe : ${filterClassSelect.value}`);
-      if (filterSubclassSelect.value !== "all") pills.push(`Sous-classe : ${filterSubclassSelect.value}`);
-      if (!pills.length) pills.push("Aucun filtre actif");
-
-      pills.forEach(text => {
-        const div = document.createElement("div");
-        div.className = "pill";
-        div.textContent = text;
-        activePills.appendChild(div);
-      });
-    }
-
     function renderBuilds(filteredBuilds) {
       buildList.innerHTML = "";
 
@@ -1069,18 +1300,21 @@
       }
 
       filteredBuilds.forEach(build => {
+        const isOwner = currentUser && build.owner_id === currentUser.id;
+
         const card = document.createElement("article");
         card.className = "card panel";
 
         card.innerHTML = `
           <div>
             <h3>${escapeHtml(build.name)}</h3>
-            <div class="date">Ajouté le ${escapeHtml(formatDate(build.createdAt))}</div>
+            <div class="date">Ajouté le ${escapeHtml(formatDate(build.created_at))}</div>
+            <div class="owner">${build.owner_id ? "Build publié par un compte connecté" : ""}</div>
           </div>
 
           <div class="badges">
-            <span class="badge">${escapeHtml(build.className)}</span>
-            <span class="badge">${escapeHtml(build.subclassName)}</span>
+            <span class="badge">${escapeHtml(build.class_name)}</span>
+            <span class="badge">${escapeHtml(build.subclass_name)}</span>
           </div>
 
           <div class="info-box">
@@ -1112,7 +1346,7 @@
         const previewBtn = document.createElement("button");
         previewBtn.type = "button";
         previewBtn.textContent = "Aperçu";
-        previewBtn.addEventListener("click", () => openPreview(build.id));
+        previewBtn.addEventListener("click", () => openPreview(build));
 
         const openBtn = document.createElement("a");
         openBtn.className = "button-link btn-secondary";
@@ -1127,37 +1361,26 @@
         copyBtn.textContent = "Copier";
         copyBtn.addEventListener("click", () => copyLink(build.link));
 
-        const renameBtn = document.createElement("button");
-        renameBtn.type = "button";
-        renameBtn.className = "btn-secondary";
-        renameBtn.textContent = "Renommer";
-        renameBtn.addEventListener("click", () => renameBuild(build.id));
-
-        const editBtn = document.createElement("button");
-        editBtn.type = "button";
-        editBtn.className = "btn-secondary";
-        editBtn.textContent = "Lien";
-        editBtn.addEventListener("click", () => editLink(build.id));
-
-        const notesBtn = document.createElement("button");
-        notesBtn.type = "button";
-        notesBtn.className = "btn-secondary";
-        notesBtn.textContent = "Infos";
-        notesBtn.addEventListener("click", () => editNotes(build.id));
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.type = "button";
-        deleteBtn.className = "btn-danger";
-        deleteBtn.textContent = "Supprimer";
-        deleteBtn.addEventListener("click", () => deleteBuild(build.id));
-
         actions.appendChild(previewBtn);
         actions.appendChild(openBtn);
         actions.appendChild(copyBtn);
-        actions.appendChild(renameBtn);
-        actions.appendChild(editBtn);
-        actions.appendChild(notesBtn);
-        actions.appendChild(deleteBtn);
+
+        if (isOwner) {
+          const editBtn = document.createElement("button");
+          editBtn.type = "button";
+          editBtn.className = "btn-secondary";
+          editBtn.textContent = "Modifier";
+          editBtn.addEventListener("click", () => openEditModal(build));
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.type = "button";
+          deleteBtn.className = "btn-danger";
+          deleteBtn.textContent = "Supprimer";
+          deleteBtn.addEventListener("click", () => deleteBuild(build.id));
+
+          actions.appendChild(editBtn);
+          actions.appendChild(deleteBtn);
+        }
 
         card.appendChild(actions);
         buildList.appendChild(card);
@@ -1165,17 +1388,16 @@
     }
 
     function render() {
-      const allBuilds = getBuilds();
       const filteredBuilds = getFilteredBuilds();
-
-      renderStats(allBuilds, filteredBuilds);
-      renderClassSummary(allBuilds);
+      renderStats(filteredBuilds);
+      renderClassSummary();
       renderToolbar(filteredBuilds);
       renderBuilds(filteredBuilds);
     }
 
     function bindEvents() {
       buildClassSelect.addEventListener("change", updateBuildSubclasses);
+      editClass.addEventListener("change", updateEditSubclasses);
 
       filterClassSelect.addEventListener("change", () => {
         updateFilterSubclasses();
@@ -1187,29 +1409,33 @@
 
       addBuildBtn.addEventListener("click", addBuild);
 
-      buildNameInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") addBuild();
-      });
+      loginBtn.addEventListener("click", openLoginModal);
+      logoutBtn.addEventListener("click", logout);
+      submitLoginBtn.addEventListener("click", login);
+      closeLoginModalBtn.addEventListener("click", closeLoginModal);
 
-      buildLinkInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") addBuild();
-      });
+      saveEditBtn.addEventListener("click", saveEdit);
+      closeEditModalBtn.addEventListener("click", closeEditModal);
 
       scrollToAddBtn.addEventListener("click", () => {
-        document.getElementById("addSection").scrollIntoView({ behavior: "smooth", block: "start" });
+        addSection.scrollIntoView({ behavior: "smooth", block: "start" });
         buildLinkInput.focus();
       });
 
       closePreviewBtn.addEventListener("click", closePreview);
       reloadPreviewBtn.addEventListener("click", reloadPreview);
 
-      previewModal.addEventListener("click", (e) => {
-        if (e.target === previewModal) closePreview();
+      [loginModal, editModal, previewModal].forEach(modal => {
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) modal.classList.remove("open");
+        });
       });
 
       document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && previewModal.classList.contains("open")) {
+        if (e.key === "Escape") {
           closePreview();
+          closeLoginModal();
+          closeEditModal();
         }
       });
 
@@ -1217,12 +1443,19 @@
         previewFallback.classList.remove("show");
         clearTimeout(openPreview._timer);
       });
+
+      supabase.auth.onAuthStateChange(async (_event, session) => {
+        currentUser = session?.user ?? null;
+        updateAuthUI();
+        await loadBuilds();
+      });
     }
 
-    function init() {
+    async function init() {
       populateClassOptions();
       bindEvents();
-      render();
+      await fetchCurrentUser();
+      await loadBuilds();
     }
 
     init();
