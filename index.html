@@ -795,653 +795,655 @@
     </div>
   </div>
 
-  <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    const SUPABASE_URL = "https://tceawcjiusgqmxwoncqc.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_4B09BmruYat2f2tY_s4XQQ_dzfOII_w";
+  const SUPABASE_URL = "https://tceawcjiusgqmxwoncqc.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_4B09BmruYat2f2tY_s4XQQ_dzfOII_w";
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const CLASS_DATA = {
+    Warrior: ["Fallen", "Battle Monk", "Paladin"],
+    Archer: ["Boltslinger", "Trapper", "Sharpshooter"],
+    Mage: ["Light Bender", "Riftwalker", "Arcanist"],
+    Assassin: ["Shadestepper", "Trickster", "Acrobat"],
+    Shaman: ["Summoner", "Ritualist", "Acolyte"]
+  };
 
-    const CLASS_DATA = {
-      Warrior: ["Fallen", "Battle Monk", "Paladin"],
-      Archer: ["Boltslinger", "Trapper", "Sharpshooter"],
-      Mage: ["Light Bender", "Riftwalker", "Arcanist"],
-      Assassin: ["Shadestepper", "Trickster", "Acrobat"],
-      Shaman: ["Summoner", "Ritualist", "Acolyte"]
+  let allBuilds = [];
+  let currentUser = null;
+  let editingBuildId = null;
+
+  const userBadge = document.getElementById("userBadge");
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const scrollToAddBtn = document.getElementById("scrollToAddBtn");
+  const addSection = document.getElementById("addSection");
+
+  const buildNameInput = document.getElementById("buildName");
+  const buildLinkInput = document.getElementById("buildLink");
+  const buildClassSelect = document.getElementById("buildClass");
+  const buildSubclassSelect = document.getElementById("buildSubclass");
+  const buildNotesInput = document.getElementById("buildNotes");
+  const addBuildBtn = document.getElementById("addBuildBtn");
+  const statusMessage = document.getElementById("statusMessage");
+
+  const searchInput = document.getElementById("searchInput");
+  const filterClassSelect = document.getElementById("filterClass");
+  const filterSubclassSelect = document.getElementById("filterSubclass");
+
+  const buildList = document.getElementById("buildList");
+  const classSummary = document.getElementById("classSummary");
+  const toolbarText = document.getElementById("toolbarText");
+  const activePills = document.getElementById("activePills");
+
+  const statTotal = document.getElementById("statTotal");
+  const statFiltered = document.getElementById("statFiltered");
+  const statClasses = document.getElementById("statClasses");
+  const statEditors = document.getElementById("statEditors");
+
+  const loginModal = document.getElementById("loginModal");
+  const loginEmail = document.getElementById("loginEmail");
+  const loginPassword = document.getElementById("loginPassword");
+  const submitLoginBtn = document.getElementById("submitLoginBtn");
+  const closeLoginModalBtn = document.getElementById("closeLoginModalBtn");
+  const loginStatus = document.getElementById("loginStatus");
+
+  const editModal = document.getElementById("editModal");
+  const editName = document.getElementById("editName");
+  const editLink = document.getElementById("editLink");
+  const editClass = document.getElementById("editClass");
+  const editSubclass = document.getElementById("editSubclass");
+  const editNotes = document.getElementById("editNotes");
+  const saveEditBtn = document.getElementById("saveEditBtn");
+  const closeEditModalBtn = document.getElementById("closeEditModalBtn");
+  const editStatus = document.getElementById("editStatus");
+
+  const previewModal = document.getElementById("previewModal");
+  const previewFrame = document.getElementById("previewFrame");
+  const previewFallback = document.getElementById("previewFallback");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalOpenLink = document.getElementById("modalOpenLink");
+  const fallbackLink = document.getElementById("fallbackLink");
+  const reloadPreviewBtn = document.getElementById("reloadPreviewBtn");
+  const closePreviewBtn = document.getElementById("closePreviewBtn");
+
+  console.log("Wynn Dashboard Supabase script loaded");
+
+  function escapeHtml(text) {
+    return String(text ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function formatDate(iso) {
+    try {
+      return new Date(iso).toLocaleDateString("fr-FR");
+    } catch {
+      return "-";
+    }
+  }
+
+  function showStatus(target, text, type = "") {
+    target.textContent = text;
+    target.className = "status " + type;
+  }
+
+  function isValidLink(link) {
+    try {
+      const url = new URL(link);
+      return url.protocol === "https:" || url.protocol === "http:";
+    } catch {
+      return false;
+    }
+  }
+
+  function getHash(link) {
+    try {
+      const url = new URL(link);
+      return url.hash ? url.hash.slice(1) : "Aucun hash";
+    } catch {
+      return "Hash indisponible";
+    }
+  }
+
+  function populateClassOptions() {
+    buildClassSelect.innerHTML = "";
+    editClass.innerHTML = "";
+    filterClassSelect.innerHTML = '<option value="all">Toutes les classes</option>';
+
+    Object.keys(CLASS_DATA).forEach(className => {
+      const o1 = document.createElement("option");
+      o1.value = className;
+      o1.textContent = className;
+      buildClassSelect.appendChild(o1);
+
+      const o2 = document.createElement("option");
+      o2.value = className;
+      o2.textContent = className;
+      editClass.appendChild(o2);
+
+      const o3 = document.createElement("option");
+      o3.value = className;
+      o3.textContent = className;
+      filterClassSelect.appendChild(o3);
+    });
+
+    updateBuildSubclasses();
+    updateEditSubclasses();
+    updateFilterSubclasses();
+  }
+
+  function updateBuildSubclasses() {
+    const className = buildClassSelect.value;
+    buildSubclassSelect.innerHTML = "";
+    (CLASS_DATA[className] || []).forEach(subclass => {
+      const opt = document.createElement("option");
+      opt.value = subclass;
+      opt.textContent = subclass;
+      buildSubclassSelect.appendChild(opt);
+    });
+  }
+
+  function updateEditSubclasses() {
+    const className = editClass.value;
+    editSubclass.innerHTML = "";
+    (CLASS_DATA[className] || []).forEach(subclass => {
+      const opt = document.createElement("option");
+      opt.value = subclass;
+      opt.textContent = subclass;
+      editSubclass.appendChild(opt);
+    });
+  }
+
+  function updateFilterSubclasses() {
+    const className = filterClassSelect.value;
+    filterSubclassSelect.innerHTML = '<option value="all">Toutes les sous-classes</option>';
+    if (className === "all") return;
+
+    (CLASS_DATA[className] || []).forEach(subclass => {
+      const opt = document.createElement("option");
+      opt.value = subclass;
+      opt.textContent = subclass;
+      filterSubclassSelect.appendChild(opt);
+    });
+  }
+
+  function updateAuthUI() {
+    const loggedIn = !!currentUser;
+    userBadge.textContent = loggedIn ? `Connecté : ${currentUser.email}` : "Non connecté";
+    loginBtn.classList.toggle("hidden", loggedIn);
+    logoutBtn.classList.toggle("hidden", !loggedIn);
+    scrollToAddBtn.classList.toggle("hidden", !loggedIn);
+    addSection.classList.toggle("hidden", !loggedIn);
+  }
+
+  async function fetchCurrentUser() {
+    const { data, error } = await supabase.auth.getUser();
+    console.log("fetchCurrentUser", { data, error });
+    currentUser = data?.user ?? null;
+    updateAuthUI();
+  }
+
+  async function loadBuilds() {
+    console.log("loadBuilds start");
+    const { data, error } = await supabase
+      .from("builds")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    console.log("loadBuilds result", { data, error });
+
+    if (error) {
+      toolbarText.textContent = `Erreur chargement : ${error.message}`;
+      return;
+    }
+
+    allBuilds = data || [];
+    render();
+  }
+
+  async function addBuild() {
+    console.log("addBuild clicked");
+
+    if (!currentUser) {
+      showStatus(statusMessage, "Tu dois être connecté.", "error");
+      return;
+    }
+
+    const className = buildClassSelect.value;
+    const subclassName = buildSubclassSelect.value;
+    const link = buildLinkInput.value.trim();
+    const name = buildNameInput.value.trim() || `${className} • ${subclassName}`;
+    const notes = buildNotesInput.value.trim();
+
+    if (!link) {
+      showStatus(statusMessage, "Tu dois coller un lien.", "error");
+      return;
+    }
+
+    if (!isValidLink(link)) {
+      showStatus(statusMessage, "Le lien n'est pas valide.", "error");
+      return;
+    }
+
+    const payload = {
+      name,
+      link,
+      class_name: className,
+      subclass_name: subclassName,
+      notes,
+      owner_id: currentUser.id
     };
 
-    let allBuilds = [];
-    let currentUser = null;
-    let editingBuildId = null;
+    console.log("insert payload", payload);
 
-    const userBadge = document.getElementById("userBadge");
-    const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const scrollToAddBtn = document.getElementById("scrollToAddBtn");
-    const addSection = document.getElementById("addSection");
+    const { error } = await supabase.from("builds").insert(payload);
+    console.log("insert result", { error });
 
-    const buildNameInput = document.getElementById("buildName");
-    const buildLinkInput = document.getElementById("buildLink");
-    const buildClassSelect = document.getElementById("buildClass");
-    const buildSubclassSelect = document.getElementById("buildSubclass");
-    const buildNotesInput = document.getElementById("buildNotes");
-    const addBuildBtn = document.getElementById("addBuildBtn");
-    const statusMessage = document.getElementById("statusMessage");
-
-    const searchInput = document.getElementById("searchInput");
-    const filterClassSelect = document.getElementById("filterClass");
-    const filterSubclassSelect = document.getElementById("filterSubclass");
-
-    const buildList = document.getElementById("buildList");
-    const classSummary = document.getElementById("classSummary");
-    const toolbarText = document.getElementById("toolbarText");
-    const activePills = document.getElementById("activePills");
-
-    const statTotal = document.getElementById("statTotal");
-    const statFiltered = document.getElementById("statFiltered");
-    const statClasses = document.getElementById("statClasses");
-    const statEditors = document.getElementById("statEditors");
-
-    const loginModal = document.getElementById("loginModal");
-    const loginEmail = document.getElementById("loginEmail");
-    const loginPassword = document.getElementById("loginPassword");
-    const submitLoginBtn = document.getElementById("submitLoginBtn");
-    const closeLoginModalBtn = document.getElementById("closeLoginModalBtn");
-    const loginStatus = document.getElementById("loginStatus");
-
-    const editModal = document.getElementById("editModal");
-    const editName = document.getElementById("editName");
-    const editLink = document.getElementById("editLink");
-    const editClass = document.getElementById("editClass");
-    const editSubclass = document.getElementById("editSubclass");
-    const editNotes = document.getElementById("editNotes");
-    const saveEditBtn = document.getElementById("saveEditBtn");
-    const closeEditModalBtn = document.getElementById("closeEditModalBtn");
-    const editStatus = document.getElementById("editStatus");
-
-    const previewModal = document.getElementById("previewModal");
-    const previewFrame = document.getElementById("previewFrame");
-    const previewFallback = document.getElementById("previewFallback");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalOpenLink = document.getElementById("modalOpenLink");
-    const fallbackLink = document.getElementById("fallbackLink");
-    const reloadPreviewBtn = document.getElementById("reloadPreviewBtn");
-    const closePreviewBtn = document.getElementById("closePreviewBtn");
-
-    function escapeHtml(text) {
-      return String(text ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    if (error) {
+      showStatus(statusMessage, `Erreur ajout : ${error.message}`, "error");
+      return;
     }
 
-    function formatDate(iso) {
-      try {
-        return new Date(iso).toLocaleDateString("fr-FR");
-      } catch {
-        return "-";
-      }
+    buildNameInput.value = "";
+    buildLinkInput.value = "";
+    buildNotesInput.value = "";
+    showStatus(statusMessage, "Build ajouté avec succès.", "success");
+    await loadBuilds();
+  }
+
+  function openLoginModal() {
+    loginStatus.textContent = "";
+    loginModal.classList.add("open");
+    loginEmail.focus();
+  }
+
+  function closeLoginModal() {
+    loginModal.classList.remove("open");
+  }
+
+  async function login() {
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value;
+
+    if (!email || !password) {
+      showStatus(loginStatus, "Email et mot de passe requis.", "error");
+      return;
     }
 
-    function showStatus(target, text, type = "") {
-      target.textContent = text;
-      target.className = "status " + type;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    console.log("login result", { data, error });
+
+    if (error) {
+      showStatus(loginStatus, `Connexion impossible : ${error.message}`, "error");
+      return;
     }
 
-    function isValidLink(link) {
-      try {
-        const url = new URL(link);
-        return url.protocol === "https:" || url.protocol === "http:";
-      } catch {
-        return false;
-      }
+    loginEmail.value = "";
+    loginPassword.value = "";
+    closeLoginModal();
+    await fetchCurrentUser();
+    await loadBuilds();
+  }
+
+  async function logout() {
+    const { error } = await supabase.auth.signOut();
+    console.log("logout result", { error });
+
+    if (error) {
+      alert(`Erreur déconnexion : ${error.message}`);
+      return;
     }
 
-    function getHash(link) {
-      try {
-        const url = new URL(link);
-        return url.hash ? url.hash.slice(1) : "Aucun hash";
-      } catch {
-        return "Hash indisponible";
-      }
+    currentUser = null;
+    updateAuthUI();
+    await loadBuilds();
+  }
+
+  function openEditModal(build) {
+    editingBuildId = build.id;
+    editName.value = build.name || "";
+    editLink.value = build.link || "";
+    editClass.value = build.class_name || "Warrior";
+    updateEditSubclasses();
+    editSubclass.value = build.subclass_name || "";
+    editNotes.value = build.notes || "";
+    editStatus.textContent = "";
+    editModal.classList.add("open");
+  }
+
+  function closeEditModal() {
+    editModal.classList.remove("open");
+    editingBuildId = null;
+  }
+
+  async function saveEdit() {
+    if (!currentUser || !editingBuildId) return;
+
+    const payload = {
+      name: editName.value.trim(),
+      link: editLink.value.trim(),
+      class_name: editClass.value,
+      subclass_name: editSubclass.value,
+      notes: editNotes.value.trim()
+    };
+
+    if (!payload.name) {
+      showStatus(editStatus, "Le nom est requis.", "error");
+      return;
     }
 
-    function populateClassOptions() {
-      buildClassSelect.innerHTML = "";
-      editClass.innerHTML = "";
-      filterClassSelect.innerHTML = '<option value="all">Toutes les classes</option>';
-
-      Object.keys(CLASS_DATA).forEach(className => {
-        const opt1 = document.createElement("option");
-        opt1.value = className;
-        opt1.textContent = className;
-        buildClassSelect.appendChild(opt1);
-
-        const opt2 = document.createElement("option");
-        opt2.value = className;
-        opt2.textContent = className;
-        editClass.appendChild(opt2);
-
-        const opt3 = document.createElement("option");
-        opt3.value = className;
-        opt3.textContent = className;
-        filterClassSelect.appendChild(opt3);
-      });
-
-      updateBuildSubclasses();
-      updateEditSubclasses();
-      updateFilterSubclasses();
+    if (!isValidLink(payload.link)) {
+      showStatus(editStatus, "Lien invalide.", "error");
+      return;
     }
 
-    function updateBuildSubclasses() {
-      const className = buildClassSelect.value;
-      buildSubclassSelect.innerHTML = "";
+    const { error } = await supabase
+      .from("builds")
+      .update(payload)
+      .eq("id", editingBuildId);
 
-      (CLASS_DATA[className] || []).forEach(subclass => {
-        const opt = document.createElement("option");
-        opt.value = subclass;
-        opt.textContent = subclass;
-        buildSubclassSelect.appendChild(opt);
-      });
+    if (error) {
+      showStatus(editStatus, `Modification impossible : ${error.message}`, "error");
+      return;
     }
 
-    function updateEditSubclasses() {
-      const className = editClass.value;
-      editSubclass.innerHTML = "";
+    closeEditModal();
+    await loadBuilds();
+  }
 
-      (CLASS_DATA[className] || []).forEach(subclass => {
-        const opt = document.createElement("option");
-        opt.value = subclass;
-        opt.textContent = subclass;
-        editSubclass.appendChild(opt);
-      });
+  async function deleteBuild(id) {
+    if (!currentUser) return;
+    if (!confirm("Supprimer ce build ?")) return;
+
+    const { error } = await supabase.from("builds").delete().eq("id", id);
+
+    if (error) {
+      alert(`Suppression impossible : ${error.message}`);
+      return;
     }
 
-    function updateFilterSubclasses() {
-      const className = filterClassSelect.value;
-      filterSubclassSelect.innerHTML = '<option value="all">Toutes les sous-classes</option>';
+    await loadBuilds();
+  }
 
-      if (className === "all") return;
-
-      (CLASS_DATA[className] || []).forEach(subclass => {
-        const opt = document.createElement("option");
-        opt.value = subclass;
-        opt.textContent = subclass;
-        filterSubclassSelect.appendChild(opt);
-      });
+  async function copyLink(link) {
+    try {
+      await navigator.clipboard.writeText(link);
+      alert("Lien copié.");
+    } catch {
+      alert("Impossible de copier le lien.");
     }
+  }
 
-    function updateAuthUI() {
-      const loggedIn = !!currentUser;
-      userBadge.textContent = loggedIn ? `Connecté : ${currentUser.email}` : "Non connecté";
-      loginBtn.classList.toggle("hidden", loggedIn);
-      logoutBtn.classList.toggle("hidden", !loggedIn);
-      scrollToAddBtn.classList.toggle("hidden", !loggedIn);
-      addSection.classList.toggle("hidden", !loggedIn);
-    }
+  function getFilteredBuilds() {
+    const search = searchInput.value.trim().toLowerCase();
+    const classFilter = filterClassSelect.value;
+    const subclassFilter = filterSubclassSelect.value;
 
-    async function fetchCurrentUser() {
-      const { data } = await supabase.auth.getUser();
-      currentUser = data?.user ?? null;
-      updateAuthUI();
-    }
+    return allBuilds.filter(build => {
+      const searchOk =
+        (build.name || "").toLowerCase().includes(search) ||
+        (build.class_name || "").toLowerCase().includes(search) ||
+        (build.subclass_name || "").toLowerCase().includes(search);
 
-    async function loadBuilds() {
-      const { data, error } = await supabase
-        .from("builds")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const classOk = classFilter === "all" || build.class_name === classFilter;
+      const subclassOk = subclassFilter === "all" || build.subclass_name === subclassFilter;
 
-      if (error) {
-        toolbarText.textContent = "Erreur de chargement des builds.";
-        console.error(error);
-        return;
-      }
+      return searchOk && classOk && subclassOk;
+    });
+  }
 
-      allBuilds = data || [];
-      render();
-    }
+  function renderStats(filteredBuilds) {
+    statTotal.textContent = allBuilds.length;
+    statFiltered.textContent = filteredBuilds.length;
+    statClasses.textContent = new Set(allBuilds.map(b => b.class_name)).size;
+    statEditors.textContent = new Set(allBuilds.map(b => b.owner_id).filter(Boolean)).size;
+  }
 
-    async function addBuild() {
-      if (!currentUser) {
-        showStatus(statusMessage, "Tu dois être connecté.", "error");
-        return;
-      }
+  function renderClassSummary() {
+    classSummary.innerHTML = "";
+    Object.keys(CLASS_DATA).forEach(className => {
+      const total = allBuilds.filter(b => b.class_name === className).length;
+      const div = document.createElement("div");
+      div.className = "class-row";
+      div.innerHTML = `<strong>${escapeHtml(className)}</strong><span>${total} build(s)</span>`;
+      classSummary.appendChild(div);
+    });
+  }
 
-      const className = buildClassSelect.value;
-      const subclassName = buildSubclassSelect.value;
-      const link = buildLinkInput.value.trim();
-      const name = buildNameInput.value.trim() || `${className} • ${subclassName}`;
-      const notes = buildNotesInput.value.trim();
+  function renderToolbar(filteredBuilds) {
+    toolbarText.textContent = filteredBuilds.length
+      ? `${filteredBuilds.length} build(s) affiché(s).`
+      : "Aucun build ne correspond aux filtres actuels.";
 
-      if (!link) {
-        showStatus(statusMessage, "Tu dois coller un lien.", "error");
-        return;
-      }
+    activePills.innerHTML = "";
+    const pills = [];
+    if (searchInput.value.trim()) pills.push(`Recherche : ${searchInput.value.trim()}`);
+    if (filterClassSelect.value !== "all") pills.push(`Classe : ${filterClassSelect.value}`);
+    if (filterSubclassSelect.value !== "all") pills.push(`Sous-classe : ${filterSubclassSelect.value}`);
+    if (!pills.length) pills.push("Aucun filtre actif");
 
-      if (!isValidLink(link)) {
-        showStatus(statusMessage, "Le lien n'est pas valide.", "error");
-        return;
-      }
+    pills.forEach(text => {
+      const div = document.createElement("div");
+      div.className = "pill";
+      div.textContent = text;
+      activePills.appendChild(div);
+    });
+  }
 
-      const { error } = await supabase.from("builds").insert({
-        name,
-        link,
-        class_name: className,
-        subclass_name: subclassName,
-        notes,
-        owner_id: currentUser.id
-      });
+  function openPreview(build) {
+    modalTitle.textContent = `${build.name} — ${build.class_name} / ${build.subclass_name}`;
+    modalOpenLink.href = build.link;
+    fallbackLink.href = build.link;
+    previewFrame.src = build.link;
+    previewFallback.classList.remove("show");
+    previewModal.classList.add("open");
 
-      if (error) {
-        console.error(error);
-        showStatus(statusMessage, `Erreur ajout : ${error.message}`, "error");
-        return;
-      }
+    clearTimeout(openPreview._timer);
+    openPreview._timer = setTimeout(() => {
+      previewFallback.classList.add("show");
+    }, 3000);
+  }
 
-      buildNameInput.value = "";
-      buildLinkInput.value = "";
-      buildNotesInput.value = "";
-      showStatus(statusMessage, "Build ajouté avec succès.", "success");
-      await loadBuilds();
-    }
+  function closePreview() {
+    previewModal.classList.remove("open");
+    previewFrame.src = "about:blank";
+    previewFallback.classList.remove("show");
+    clearTimeout(openPreview._timer);
+  }
 
-    function openLoginModal() {
-      loginStatus.textContent = "";
-      loginModal.classList.add("open");
-      loginEmail.focus();
-    }
+  function reloadPreview() {
+    const link = modalOpenLink.href;
+    if (!link) return;
 
-    function closeLoginModal() {
-      loginModal.classList.remove("open");
-    }
+    previewFallback.classList.remove("show");
+    previewFrame.src = "about:blank";
 
-    async function login() {
-      const email = loginEmail.value.trim();
-      const password = loginPassword.value;
-
-      if (!email || !password) {
-        showStatus(loginStatus, "Email et mot de passe requis.", "error");
-        return;
-      }
-
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-      if (error) {
-        showStatus(loginStatus, `Connexion impossible : ${error.message}`, "error");
-        return;
-      }
-
-      loginEmail.value = "";
-      loginPassword.value = "";
-      closeLoginModal();
-      await fetchCurrentUser();
-      await loadBuilds();
-    }
-
-    async function logout() {
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        alert(`Erreur déconnexion : ${error.message}`);
-        return;
-      }
-
-      currentUser = null;
-      updateAuthUI();
-      await loadBuilds();
-    }
-
-    function openEditModal(build) {
-      editingBuildId = build.id;
-      editName.value = build.name || "";
-      editLink.value = build.link || "";
-      editClass.value = build.class_name || "Warrior";
-      updateEditSubclasses();
-      editSubclass.value = build.subclass_name || "";
-      editNotes.value = build.notes || "";
-      editStatus.textContent = "";
-      editModal.classList.add("open");
-    }
-
-    function closeEditModal() {
-      editModal.classList.remove("open");
-      editingBuildId = null;
-    }
-
-    async function saveEdit() {
-      if (!currentUser || !editingBuildId) return;
-
-      const payload = {
-        name: editName.value.trim(),
-        link: editLink.value.trim(),
-        class_name: editClass.value,
-        subclass_name: editSubclass.value,
-        notes: editNotes.value.trim()
-      };
-
-      if (!payload.name) {
-        showStatus(editStatus, "Le nom est requis.", "error");
-        return;
-      }
-
-      if (!isValidLink(payload.link)) {
-        showStatus(editStatus, "Lien invalide.", "error");
-        return;
-      }
-
-      const { error } = await supabase
-        .from("builds")
-        .update(payload)
-        .eq("id", editingBuildId);
-
-      if (error) {
-        showStatus(editStatus, `Modification impossible : ${error.message}`, "error");
-        return;
-      }
-
-      closeEditModal();
-      await loadBuilds();
-    }
-
-    async function deleteBuild(id) {
-      if (!currentUser) return;
-      if (!confirm("Supprimer ce build ?")) return;
-
-      const { error } = await supabase
-        .from("builds")
-        .delete()
-        .eq("id", id);
-
-      if (error) {
-        alert(`Suppression impossible : ${error.message}`);
-        return;
-      }
-
-      await loadBuilds();
-    }
-
-    async function copyLink(link) {
-      try {
-        await navigator.clipboard.writeText(link);
-        alert("Lien copié.");
-      } catch {
-        alert("Impossible de copier le lien.");
-      }
-    }
-
-    function getFilteredBuilds() {
-      const search = searchInput.value.trim().toLowerCase();
-      const classFilter = filterClassSelect.value;
-      const subclassFilter = filterSubclassSelect.value;
-
-      return allBuilds.filter(build => {
-        const searchOk =
-          (build.name || "").toLowerCase().includes(search) ||
-          (build.class_name || "").toLowerCase().includes(search) ||
-          (build.subclass_name || "").toLowerCase().includes(search);
-
-        const classOk = classFilter === "all" || build.class_name === classFilter;
-        const subclassOk = subclassFilter === "all" || build.subclass_name === subclassFilter;
-
-        return searchOk && classOk && subclassOk;
-      });
-    }
-
-    function renderStats(filteredBuilds) {
-      statTotal.textContent = allBuilds.length;
-      statFiltered.textContent = filteredBuilds.length;
-      statClasses.textContent = new Set(allBuilds.map(b => b.class_name)).size;
-      statEditors.textContent = new Set(allBuilds.map(b => b.owner_id).filter(Boolean)).size;
-    }
-
-    function renderClassSummary() {
-      classSummary.innerHTML = "";
-
-      Object.keys(CLASS_DATA).forEach(className => {
-        const total = allBuilds.filter(b => b.class_name === className).length;
-        const div = document.createElement("div");
-        div.className = "class-row";
-        div.innerHTML = `<strong>${escapeHtml(className)}</strong><span>${total} build(s)</span>`;
-        classSummary.appendChild(div);
-      });
-    }
-
-    function renderToolbar(filteredBuilds) {
-      toolbarText.textContent = filteredBuilds.length
-        ? `${filteredBuilds.length} build(s) affiché(s).`
-        : "Aucun build ne correspond aux filtres actuels.";
-
-      activePills.innerHTML = "";
-
-      const pills = [];
-      if (searchInput.value.trim()) pills.push(`Recherche : ${searchInput.value.trim()}`);
-      if (filterClassSelect.value !== "all") pills.push(`Classe : ${filterClassSelect.value}`);
-      if (filterSubclassSelect.value !== "all") pills.push(`Sous-classe : ${filterSubclassSelect.value}`);
-      if (!pills.length) pills.push("Aucun filtre actif");
-
-      pills.forEach(text => {
-        const div = document.createElement("div");
-        div.className = "pill";
-        div.textContent = text;
-        activePills.appendChild(div);
-      });
-    }
-
-    function openPreview(build) {
-      modalTitle.textContent = `${build.name} — ${build.class_name} / ${build.subclass_name}`;
-      modalOpenLink.href = build.link;
-      fallbackLink.href = build.link;
-      previewFrame.src = build.link;
-      previewFallback.classList.remove("show");
-      previewModal.classList.add("open");
-
-      clearTimeout(openPreview._timer);
+    setTimeout(() => {
+      previewFrame.src = link;
       openPreview._timer = setTimeout(() => {
         previewFallback.classList.add("show");
       }, 3000);
+    }, 80);
+  }
+
+  function renderBuilds(filteredBuilds) {
+    buildList.innerHTML = "";
+
+    if (!filteredBuilds.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty panel";
+      empty.innerHTML = `
+        <h3>Aucun build trouvé</h3>
+        <p>Ajoute un build ou modifie les filtres.</p>
+      `;
+      buildList.appendChild(empty);
+      return;
     }
 
-    function closePreview() {
-      previewModal.classList.remove("open");
-      previewFrame.src = "about:blank";
-      previewFallback.classList.remove("show");
-      clearTimeout(openPreview._timer);
-    }
+    filteredBuilds.forEach(build => {
+      const isOwner = currentUser && build.owner_id === currentUser.id;
 
-    function reloadPreview() {
-      const link = modalOpenLink.href;
-      if (!link) return;
+      const card = document.createElement("article");
+      card.className = "card panel";
 
-      previewFallback.classList.remove("show");
-      previewFrame.src = "about:blank";
+      card.innerHTML = `
+        <div>
+          <h3>${escapeHtml(build.name)}</h3>
+          <div class="date">Ajouté le ${escapeHtml(formatDate(build.created_at))}</div>
+        </div>
 
-      setTimeout(() => {
-        previewFrame.src = link;
-        openPreview._timer = setTimeout(() => {
-          previewFallback.classList.add("show");
-        }, 3000);
-      }, 80);
-    }
+        <div class="badges">
+          <span class="badge">${escapeHtml(build.class_name)}</span>
+          <span class="badge">${escapeHtml(build.subclass_name)}</span>
+        </div>
 
-    function renderBuilds(filteredBuilds) {
-      buildList.innerHTML = "";
+        <div class="info-box">
+          <div class="info-row">
+            <div class="info-label">Lien</div>
+            <div><span class="mono" title="${escapeHtml(build.link)}">${escapeHtml(build.link)}</span></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Hash</div>
+            <div><span class="mono" title="${escapeHtml(getHash(build.link))}">${escapeHtml(getHash(build.link))}</span></div>
+          </div>
+        </div>
 
-      if (!filteredBuilds.length) {
-        const empty = document.createElement("div");
-        empty.className = "empty panel";
-        empty.innerHTML = `
-          <h3>Aucun build trouvé</h3>
-          <p>Ajoute un build ou modifie les filtres.</p>
-        `;
-        buildList.appendChild(empty);
-        return;
+        <div class="notes-box">
+          <div class="notes-title">Informations</div>
+          <div class="notes-content ${build.notes ? "" : "notes-empty"}">
+            ${build.notes ? escapeHtml(build.notes) : "Aucune information ajoutée pour ce build."}
+          </div>
+        </div>
+
+        <div class="note">
+          Clique sur <strong>Aperçu</strong> pour voir le build WynnBuilder avec ses stats.
+        </div>
+      `;
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const previewBtn = document.createElement("button");
+      previewBtn.type = "button";
+      previewBtn.textContent = "Aperçu";
+      previewBtn.addEventListener("click", () => openPreview(build));
+
+      const openBtn = document.createElement("a");
+      openBtn.className = "button-link btn-secondary";
+      openBtn.href = build.link;
+      openBtn.target = "_blank";
+      openBtn.rel = "noopener noreferrer";
+      openBtn.textContent = "Ouvrir";
+
+      const copyBtn = document.createElement("button");
+      copyBtn.type = "button";
+      copyBtn.className = "btn-secondary";
+      copyBtn.textContent = "Copier";
+      copyBtn.addEventListener("click", () => copyLink(build.link));
+
+      actions.appendChild(previewBtn);
+      actions.appendChild(openBtn);
+      actions.appendChild(copyBtn);
+
+      if (isOwner) {
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "btn-secondary";
+        editBtn.textContent = "Modifier";
+        editBtn.addEventListener("click", () => openEditModal(build));
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "btn-danger";
+        deleteBtn.textContent = "Supprimer";
+        deleteBtn.addEventListener("click", () => deleteBuild(build.id));
+
+        actions.appendChild(editBtn);
+        actions.appendChild(deleteBtn);
       }
 
-      filteredBuilds.forEach(build => {
-        const isOwner = currentUser && build.owner_id === currentUser.id;
+      card.appendChild(actions);
+      buildList.appendChild(card);
+    });
+  }
 
-        const card = document.createElement("article");
-        card.className = "card panel";
+  function render() {
+    const filteredBuilds = getFilteredBuilds();
+    renderStats(filteredBuilds);
+    renderClassSummary();
+    renderToolbar(filteredBuilds);
+    renderBuilds(filteredBuilds);
+  }
 
-        card.innerHTML = `
-          <div>
-            <h3>${escapeHtml(build.name)}</h3>
-            <div class="date">Ajouté le ${escapeHtml(formatDate(build.created_at))}</div>
-          </div>
+  function bindEvents() {
+    buildClassSelect.addEventListener("change", updateBuildSubclasses);
+    editClass.addEventListener("change", updateEditSubclasses);
 
-          <div class="badges">
-            <span class="badge">${escapeHtml(build.class_name)}</span>
-            <span class="badge">${escapeHtml(build.subclass_name)}</span>
-          </div>
+    filterClassSelect.addEventListener("change", () => {
+      updateFilterSubclasses();
+      render();
+    });
 
-          <div class="info-box">
-            <div class="info-row">
-              <div class="info-label">Lien</div>
-              <div><span class="mono" title="${escapeHtml(build.link)}">${escapeHtml(build.link)}</span></div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">Hash</div>
-              <div><span class="mono" title="${escapeHtml(getHash(build.link))}">${escapeHtml(getHash(build.link))}</span></div>
-            </div>
-          </div>
+    filterSubclassSelect.addEventListener("change", render);
+    searchInput.addEventListener("input", render);
 
-          <div class="notes-box">
-            <div class="notes-title">Informations</div>
-            <div class="notes-content ${build.notes ? "" : "notes-empty"}">
-              ${build.notes ? escapeHtml(build.notes) : "Aucune information ajoutée pour ce build."}
-            </div>
-          </div>
+    addBuildBtn.addEventListener("click", addBuild);
+    loginBtn.addEventListener("click", openLoginModal);
+    logoutBtn.addEventListener("click", logout);
+    submitLoginBtn.addEventListener("click", login);
+    closeLoginModalBtn.addEventListener("click", closeLoginModal);
 
-          <div class="note">
-            Clique sur <strong>Aperçu</strong> pour voir le build WynnBuilder avec ses stats.
-          </div>
-        `;
+    saveEditBtn.addEventListener("click", saveEdit);
+    closeEditModalBtn.addEventListener("click", closeEditModal);
 
-        const actions = document.createElement("div");
-        actions.className = "actions";
+    scrollToAddBtn.addEventListener("click", () => {
+      addSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      buildLinkInput.focus();
+    });
 
-        const previewBtn = document.createElement("button");
-        previewBtn.type = "button";
-        previewBtn.textContent = "Aperçu";
-        previewBtn.addEventListener("click", () => openPreview(build));
+    closePreviewBtn.addEventListener("click", closePreview);
+    reloadPreviewBtn.addEventListener("click", reloadPreview);
 
-        const openBtn = document.createElement("a");
-        openBtn.className = "button-link btn-secondary";
-        openBtn.href = build.link;
-        openBtn.target = "_blank";
-        openBtn.rel = "noopener noreferrer";
-        openBtn.textContent = "Ouvrir";
-
-        const copyBtn = document.createElement("button");
-        copyBtn.type = "button";
-        copyBtn.className = "btn-secondary";
-        copyBtn.textContent = "Copier";
-        copyBtn.addEventListener("click", () => copyLink(build.link));
-
-        actions.appendChild(previewBtn);
-        actions.appendChild(openBtn);
-        actions.appendChild(copyBtn);
-
-        if (isOwner) {
-          const editBtn = document.createElement("button");
-          editBtn.type = "button";
-          editBtn.className = "btn-secondary";
-          editBtn.textContent = "Modifier";
-          editBtn.addEventListener("click", () => openEditModal(build));
-
-          const deleteBtn = document.createElement("button");
-          deleteBtn.type = "button";
-          deleteBtn.className = "btn-danger";
-          deleteBtn.textContent = "Supprimer";
-          deleteBtn.addEventListener("click", () => deleteBuild(build.id));
-
-          actions.appendChild(editBtn);
-          actions.appendChild(deleteBtn);
-        }
-
-        card.appendChild(actions);
-        buildList.appendChild(card);
+    [loginModal, editModal, previewModal].forEach(modal => {
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) modal.classList.remove("open");
       });
-    }
+    });
 
-    function render() {
-      const filteredBuilds = getFilteredBuilds();
-      renderStats(filteredBuilds);
-      renderClassSummary();
-      renderToolbar(filteredBuilds);
-      renderBuilds(filteredBuilds);
-    }
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closePreview();
+        closeLoginModal();
+        closeEditModal();
+      }
+    });
 
-    function bindEvents() {
-      buildClassSelect.addEventListener("change", updateBuildSubclasses);
-      editClass.addEventListener("change", updateEditSubclasses);
+    previewFrame.addEventListener("load", () => {
+      previewFallback.classList.remove("show");
+      clearTimeout(openPreview._timer);
+    });
 
-      filterClassSelect.addEventListener("change", () => {
-        updateFilterSubclasses();
-        render();
-      });
-
-      filterSubclassSelect.addEventListener("change", render);
-      searchInput.addEventListener("input", render);
-
-      addBuildBtn.addEventListener("click", addBuild);
-
-      loginBtn.addEventListener("click", openLoginModal);
-      logoutBtn.addEventListener("click", logout);
-      submitLoginBtn.addEventListener("click", login);
-      closeLoginModalBtn.addEventListener("click", closeLoginModal);
-
-      saveEditBtn.addEventListener("click", saveEdit);
-      closeEditModalBtn.addEventListener("click", closeEditModal);
-
-      scrollToAddBtn.addEventListener("click", () => {
-        addSection.scrollIntoView({ behavior: "smooth", block: "start" });
-        buildLinkInput.focus();
-      });
-
-      closePreviewBtn.addEventListener("click", closePreview);
-      reloadPreviewBtn.addEventListener("click", reloadPreview);
-
-      [loginModal, editModal, previewModal].forEach(modal => {
-        modal.addEventListener("click", (e) => {
-          if (e.target === modal) {
-            modal.classList.remove("open");
-          }
-        });
-      });
-
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          closePreview();
-          closeLoginModal();
-          closeEditModal();
-        }
-      });
-
-      previewFrame.addEventListener("load", () => {
-        previewFallback.classList.remove("show");
-        clearTimeout(openPreview._timer);
-      });
-
-      supabase.auth.onAuthStateChange(async (_event, session) => {
-        currentUser = session?.user ?? null;
-        updateAuthUI();
-        await loadBuilds();
-      });
-    }
-
-    async function init() {
-      populateClassOptions();
-      bindEvents();
-      await fetchCurrentUser();
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      currentUser = session?.user ?? null;
+      updateAuthUI();
       await loadBuilds();
-    }
+    });
+  }
 
-    init();
-  </script>
+  async function init() {
+    populateClassOptions();
+    bindEvents();
+    await fetchCurrentUser();
+    await loadBuilds();
+  }
+
+  init();
+</script>
+  
 </body>
 </html>
