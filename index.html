@@ -1006,55 +1006,100 @@
     render();
   }
 
-  async function addBuild() {
-    console.log("addBuild clicked");
+async function addBuild() {
+  console.log("addBuild clicked");
 
-    if (!currentUser) {
-      showStatus(statusMessage, "Tu dois être connecté.", "error");
+  if (!currentUser) {
+    showStatus(statusMessage, "Tu dois être connecté.", "error");
+    return;
+  }
+
+  const className = buildClassSelect.value;
+  const subclassName = buildSubclassSelect.value;
+  const link = buildLinkInput.value.trim();
+  const name = buildNameInput.value.trim() || `${className} • ${subclassName}`;
+  const notes = buildNotesInput.value.trim();
+
+  if (!link) {
+    showStatus(statusMessage, "Tu dois coller un lien.", "error");
+    return;
+  }
+
+  if (!isValidLink(link)) {
+    showStatus(statusMessage, "Le lien n'est pas valide.", "error");
+    return;
+  }
+
+  const payload = {
+    name,
+    link,
+    class_name: className,
+    subclass_name: subclassName,
+    notes,
+    owner_id: currentUser.id
+  };
+
+  console.log("insert payload", payload);
+
+  try {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    console.log("sessionData", sessionData, sessionError);
+
+    if (sessionError) {
+      showStatus(statusMessage, `Erreur session : ${sessionError.message}`, "error");
       return;
     }
 
-    const className = buildClassSelect.value;
-    const subclassName = buildSubclassSelect.value;
-    const link = buildLinkInput.value.trim();
-    const name = buildNameInput.value.trim() || `${className} • ${subclassName}`;
-    const notes = buildNotesInput.value.trim();
+    const accessToken = sessionData?.session?.access_token;
 
-    if (!link) {
-      showStatus(statusMessage, "Tu dois coller un lien.", "error");
+    if (!accessToken) {
+      showStatus(statusMessage, "Session introuvable. Reconnecte-toi.", "error");
       return;
     }
 
-    if (!isValidLink(link)) {
-      showStatus(statusMessage, "Le lien n'est pas valide.", "error");
-      return;
-    }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
-    const payload = {
-      name,
-      link,
-      class_name: className,
-      subclass_name: subclassName,
-      notes,
-      owner_id: currentUser.id
-    };
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/builds`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
 
-    console.log("insert payload", payload);
+    clearTimeout(timeout);
 
-    const { error } = await supabase.from("builds").insert(payload);
-    console.log("insert result", { error });
+    const rawText = await response.text();
+    console.log("insert response status", response.status);
+    console.log("insert response body", rawText);
 
-    if (error) {
-      showStatus(statusMessage, `Erreur ajout : ${error.message}`, "error");
+    if (!response.ok) {
+      showStatus(statusMessage, `Erreur ajout : ${rawText}`, "error");
       return;
     }
 
     buildNameInput.value = "";
     buildLinkInput.value = "";
     buildNotesInput.value = "";
+
     showStatus(statusMessage, "Build ajouté avec succès.", "success");
     await loadBuilds();
+  } catch (err) {
+    console.error("insert fetch error", err);
+
+    if (err.name === "AbortError") {
+      showStatus(statusMessage, "La requête a expiré après 15 secondes.", "error");
+      return;
+    }
+
+    showStatus(statusMessage, `Erreur JS : ${err.message || "inconnue"}`, "error");
   }
+}
 
   function openLoginModal() {
     loginStatus.textContent = "";
