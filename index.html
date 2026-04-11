@@ -810,9 +810,10 @@
     Shaman: ["Summoner", "Ritualist", "Acolyte"]
   };
 
-  let allBuilds = [];
-  let currentUser = null;
-  let editingBuildId = null;
+ let allBuilds = [];
+let currentUser = null;
+let currentSession = null;
+let editingBuildId = null;
 
   const userBadge = document.getElementById("userBadge");
   const loginBtn = document.getElementById("loginBtn");
@@ -981,12 +982,15 @@
     addSection.classList.toggle("hidden", !loggedIn);
   }
 
-  async function fetchCurrentUser() {
-    const { data, error } = await supabase.auth.getUser();
-    console.log("fetchCurrentUser", { data, error });
-    currentUser = data?.user ?? null;
-    updateAuthUI();
-  }
+async function fetchCurrentUser() {
+  const { data, error } = await supabase.auth.getSession();
+  console.log("fetchCurrentUser session", { data, error });
+
+  currentSession = data?.session ?? null;
+  currentUser = currentSession?.user ?? null;
+
+  updateAuthUI();
+}
 
   async function loadBuilds() {
     console.log("loadBuilds start");
@@ -1009,7 +1013,7 @@
 async function addBuild() {
   console.log("addBuild clicked");
 
-  if (!currentUser) {
+  if (!currentUser || !currentSession) {
     showStatus(statusMessage, "Tu dois être connecté.", "error");
     return;
   }
@@ -1042,15 +1046,7 @@ async function addBuild() {
   console.log("insert payload", payload);
 
   try {
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    console.log("sessionData", sessionData, sessionError);
-
-    if (sessionError) {
-      showStatus(statusMessage, `Erreur session : ${sessionError.message}`, "error");
-      return;
-    }
-
-    const accessToken = sessionData?.session?.access_token;
+    const accessToken = currentSession.access_token;
 
     if (!accessToken) {
       showStatus(statusMessage, "Session introuvable. Reconnecte-toi.", "error");
@@ -1086,8 +1082,8 @@ async function addBuild() {
     buildNameInput.value = "";
     buildLinkInput.value = "";
     buildNotesInput.value = "";
-
     showStatus(statusMessage, "Build ajouté avec succès.", "success");
+
     await loadBuilds();
   } catch (err) {
     console.error("insert fetch error", err);
@@ -1135,19 +1131,22 @@ async function addBuild() {
     await loadBuilds();
   }
 
-  async function logout() {
-    const { error } = await supabase.auth.signOut();
-    console.log("logout result", { error });
+async function logout() {
+  console.log("logout clicked");
 
-    if (error) {
-      alert(`Erreur déconnexion : ${error.message}`);
-      return;
-    }
+  const { error } = await supabase.auth.signOut({ scope: "local" });
+  console.log("logout result", { error });
 
-    currentUser = null;
-    updateAuthUI();
-    await loadBuilds();
+  if (error) {
+    alert(`Erreur déconnexion : ${error.message}`);
+    return;
   }
+
+  currentSession = null;
+  currentUser = null;
+  updateAuthUI();
+  await loadBuilds();
+}
 
   function openEditModal(build) {
     editingBuildId = build.id;
@@ -1473,11 +1472,17 @@ async function addBuild() {
       clearTimeout(openPreview._timer);
     });
 
-    supabase.auth.onAuthStateChange(async (_event, session) => {
-      currentUser = session?.user ?? null;
-      updateAuthUI();
-      await loadBuilds();
-    });
+supabase.auth.onAuthStateChange((_event, session) => {
+  console.log("onAuthStateChange", _event, session);
+
+  currentSession = session ?? null;
+  currentUser = session?.user ?? null;
+  updateAuthUI();
+
+  setTimeout(() => {
+    loadBuilds();
+  }, 0);
+});
   }
 
   async function init() {
