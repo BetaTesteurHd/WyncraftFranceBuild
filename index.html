@@ -808,13 +808,15 @@
     </div>
   </div>
 
-  <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+<script type="module">
+  console.log("VERSION SUPABASE DEBUG V2");
 
-    const SUPABASE_URL = "https://tceawcjiusgqmxwoncqc.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_4B09BmruYat2f2tY_s4XQQ_dzfOII_w";
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const SUPABASE_URL = "https://tceawcjiusgqmxwoncqc.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_4B09BmruYat2f2tY_s4XQQ_dzfOII_w";
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const CLASS_DATA = {
       Warrior: ["Fallen", "Battle Monk", "Paladin"],
