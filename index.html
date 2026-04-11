@@ -727,7 +727,6 @@
     </div>
   </div>
 
-  <!-- LOGIN MODAL -->
   <div id="loginModal" class="modal">
     <div class="modal-box">
       <div class="modal-head">
@@ -751,7 +750,6 @@
     </div>
   </div>
 
-  <!-- EDIT MODAL -->
   <div id="editModal" class="modal">
     <div class="modal-box">
       <div class="modal-head">
@@ -778,7 +776,6 @@
     </div>
   </div>
 
-  <!-- PREVIEW MODAL -->
   <div id="previewModal" class="modal">
     <div class="modal-box large">
       <div class="modal-head">
@@ -808,15 +805,15 @@
     </div>
   </div>
 
-<script type="module">
-  console.log("VERSION SUPABASE DEBUG V2");
+  <script type="module">
+    console.log("VERSION SUPABASE DEBUG V4");
 
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-  const SUPABASE_URL = "https://tceawcjiusgqmxwoncqc.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_4B09BmruYat2f2tY_s4XQQ_dzfOII_w";
+    const SUPABASE_URL = "https://tceawcjiusgqmxwoncqc.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_4B09BmruYat2f2tY_s4XQQ_dzfOII_w";
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const CLASS_DATA = {
       Warrior: ["Fallen", "Battle Monk", "Paladin"],
@@ -830,7 +827,6 @@
     let currentUser = null;
     let editingBuildId = null;
 
-    // Elements
     const userBadge = document.getElementById("userBadge");
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
@@ -859,7 +855,6 @@
     const statClasses = document.getElementById("statClasses");
     const statEditors = document.getElementById("statEditors");
 
-    // Login modal
     const loginModal = document.getElementById("loginModal");
     const loginEmail = document.getElementById("loginEmail");
     const loginPassword = document.getElementById("loginPassword");
@@ -867,7 +862,6 @@
     const closeLoginModalBtn = document.getElementById("closeLoginModalBtn");
     const loginStatus = document.getElementById("loginStatus");
 
-    // Edit modal
     const editModal = document.getElementById("editModal");
     const editName = document.getElementById("editName");
     const editLink = document.getElementById("editLink");
@@ -878,7 +872,6 @@
     const closeEditModalBtn = document.getElementById("closeEditModalBtn");
     const editStatus = document.getElementById("editStatus");
 
-    // Preview modal
     const previewModal = document.getElementById("previewModal");
     const previewFrame = document.getElementById("previewFrame");
     const previewFallback = document.getElementById("previewFallback");
@@ -1007,16 +1000,23 @@
     }
 
     async function fetchCurrentUser() {
-      const { data } = await supabase.auth.getUser();
-      currentUser = data.user ?? null;
+      const { data, error } = await supabase.auth.getUser();
+      console.log("fetchCurrentUser error:", error);
+      currentUser = data?.user ?? null;
+      console.log("fetchCurrentUser user:", currentUser);
       updateAuthUI();
     }
 
     async function loadBuilds() {
+      console.log("loadBuilds start");
+
       const { data, error } = await supabase
         .from("builds")
         .select("*")
         .order("created_at", { ascending: false });
+
+      console.log("loadBuilds data:", data);
+      console.log("loadBuilds error:", error);
 
       if (error) {
         toolbarText.textContent = "Erreur de chargement des builds.";
@@ -1028,94 +1028,97 @@
       render();
     }
 
-async function addBuild() {
-  console.log("=== addBuild clicked ===");
-  console.log("currentUser:", currentUser);
-  console.log("currentUser.id:", currentUser?.id);
+    async function addBuild() {
+      console.log("=== addBuild clicked ===");
+      console.log("currentUser:", currentUser);
+      console.log("currentUser.id:", currentUser?.id);
 
-  if (!currentUser) {
-    showStatus(statusMessage, "Tu dois être connecté.", "error");
-    console.error("Aucun utilisateur connecté");
-    return;
-  }
+      if (!currentUser) {
+        showStatus(statusMessage, "Tu dois être connecté.", "error");
+        console.error("Aucun utilisateur connecté");
+        return;
+      }
 
-  const className = buildClassSelect.value;
-  const subclassName = buildSubclassSelect.value;
-  const link = buildLinkInput.value.trim();
-  const name = buildNameInput.value.trim() || `${className} • ${subclassName}`;
-  const notes = buildNotesInput.value.trim();
-  const ownerId = currentUser.id;
+      const className = buildClassSelect.value;
+      const subclassName = buildSubclassSelect.value;
+      const link = buildLinkInput.value.trim();
+      const name = buildNameInput.value.trim() || `${className} • ${subclassName}`;
+      const notes = buildNotesInput.value.trim();
+      const ownerId = currentUser.id;
 
-  console.log("name:", name);
-  console.log("link:", link);
-  console.log("class_name:", className);
-  console.log("subclass_name:", subclassName);
-  console.log("notes:", notes);
-  console.log("owner_id:", ownerId);
+      console.log("name:", name);
+      console.log("link:", link);
+      console.log("class_name:", className);
+      console.log("subclass_name:", subclassName);
+      console.log("notes:", notes);
+      console.log("owner_id:", ownerId);
 
-  if (!link) {
-    showStatus(statusMessage, "Tu dois coller un lien.", "error");
-    console.error("Lien vide");
-    return;
-  }
+      if (!link) {
+        showStatus(statusMessage, "Tu dois coller un lien.", "error");
+        console.error("Lien vide");
+        return;
+      }
 
-  if (!isValidLink(link)) {
-    showStatus(statusMessage, "Le lien n'est pas valide.", "error");
-    console.error("Lien invalide :", link);
-    return;
-  }
+      if (!isValidLink(link)) {
+        showStatus(statusMessage, "Le lien n'est pas valide.", "error");
+        console.error("Lien invalide :", link);
+        return;
+      }
 
-  const payload = {
-    name,
-    link,
-    class_name: className,
-    subclass_name: subclassName,
-    notes,
-    owner_id: ownerId
-  };
+      const payload = {
+        name,
+        link,
+        class_name: className,
+        subclass_name: subclassName,
+        notes,
+        owner_id: ownerId
+      };
 
-  console.log("Payload envoyé:", JSON.stringify(payload, null, 2));
-  console.log("Avant insert Supabase");
+      console.log("Payload envoyé:", JSON.stringify(payload, null, 2));
+      console.log("Avant insert Supabase");
 
-  try {
-    const { data, error } = await supabase
-      .from("builds")
-      .insert([payload])
-      .select();
+      try {
+        const { data, error } = await supabase
+          .from("builds")
+          .insert([payload])
+          .select();
 
-    console.log("Après insert Supabase");
-    console.log("data:", data);
-    console.log("error:", error);
+        console.log("Après insert Supabase");
+        console.log("data:", data);
+        console.log("error:", error);
 
-    if (error) {
-      console.error("Erreur Supabase complète :", error);
-      showStatus(statusMessage, `Erreur ajout : ${error.message || "inconnue"}`, "error");
-      return;
+        if (error) {
+          console.error("Erreur Supabase complète :", error);
+          showStatus(statusMessage, `Erreur ajout : ${error.message || "inconnue"}`, "error");
+          return;
+        }
+
+        buildNameInput.value = "";
+        buildLinkInput.value = "";
+        buildNotesInput.value = "";
+
+        showStatus(statusMessage, "Build ajouté avec succès.", "success");
+        await loadBuilds();
+      } catch (err) {
+        console.error("Erreur JS lors de l'ajout :", err);
+        showStatus(statusMessage, `Erreur JS : ${err.message || "inconnue"}`, "error");
+      }
     }
 
-    buildNameInput.value = "";
-    buildLinkInput.value = "";
-    buildNotesInput.value = "";
-
-    showStatus(statusMessage, "Build ajouté avec succès.", "success");
-    await loadBuilds();
-  } catch (err) {
-    console.error("Erreur JS lors de l'ajout :", err);
-    showStatus(statusMessage, `Erreur JS : ${err.message || "inconnue"}`, "error");
-  }
-}
-
     function openLoginModal() {
+      console.log("=== openLoginModal ===");
       loginModal.classList.add("open");
       loginStatus.textContent = "";
       loginEmail.focus();
     }
 
     function closeLoginModal() {
+      console.log("=== closeLoginModal ===");
       loginModal.classList.remove("open");
     }
 
     async function login() {
+      console.log("=== login clicked ===");
       const email = loginEmail.value.trim();
       const password = loginPassword.value;
 
@@ -1124,7 +1127,10 @@ async function addBuild() {
         return;
       }
 
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      console.log("login data:", data);
+      console.log("login error:", error);
 
       if (error) {
         console.error(error);
@@ -1139,29 +1145,28 @@ async function addBuild() {
       await loadBuilds();
     }
 
-async function logout() {
-  console.log("=== logout clicked ===");
+    async function logout() {
+      console.log("=== logout clicked ===");
 
-  try {
-    const { error } = await supabase.auth.signOut();
+      try {
+        const { error } = await supabase.auth.signOut();
+        console.log("logout error:", error);
 
-    console.log("logout error:", error);
+        if (error) {
+          console.error("Erreur déconnexion :", error);
+          alert("Erreur lors de la déconnexion.");
+          return;
+        }
 
-    if (error) {
-      console.error("Erreur déconnexion :", error);
-      alert("Erreur lors de la déconnexion.");
-      return;
+        currentUser = null;
+        updateAuthUI();
+        await loadBuilds();
+        console.log("Déconnexion réussie");
+      } catch (err) {
+        console.error("Erreur JS logout :", err);
+        alert("Erreur JS lors de la déconnexion.");
+      }
     }
-
-    currentUser = null;
-    updateAuthUI();
-    await loadBuilds();
-    console.log("Déconnexion réussie");
-  } catch (err) {
-    console.error("Erreur JS logout :", err);
-    alert("Erreur JS lors de la déconnexion.");
-  }
-}
 
     function openEditModal(build) {
       editingBuildId = build.id;
@@ -1180,337 +1185,4 @@ async function logout() {
       editingBuildId = null;
     }
 
-    async function saveEdit() {
-      if (!currentUser || !editingBuildId) return;
-
-      const payload = {
-        name: editName.value.trim(),
-        link: editLink.value.trim(),
-        class_name: editClass.value,
-        subclass_name: editSubclass.value,
-        notes: editNotes.value.trim()
-      };
-
-      if (!payload.name) {
-        showStatus(editStatus, "Le nom est requis.", "error");
-        return;
-      }
-
-      if (!isValidLink(payload.link)) {
-        showStatus(editStatus, "Lien invalide.", "error");
-        return;
-      }
-
-      const { error } = await supabase
-        .from("builds")
-        .update(payload)
-        .eq("id", editingBuildId);
-
-      if (error) {
-        console.error(error);
-        showStatus(editStatus, "Modification impossible.", "error");
-        return;
-      }
-
-      closeEditModal();
-      await loadBuilds();
-    }
-
-    async function deleteBuild(id) {
-      if (!currentUser) return;
-      if (!confirm("Supprimer ce build ?")) return;
-
-      const { error } = await supabase
-        .from("builds")
-        .delete()
-        .eq("id", id);
-
-      if (error) {
-        console.error(error);
-        alert("Suppression impossible.");
-        return;
-      }
-
-      await loadBuilds();
-    }
-
-    async function copyLink(link) {
-      try {
-        await navigator.clipboard.writeText(link);
-        alert("Lien copié.");
-      } catch {
-        alert("Impossible de copier le lien.");
-      }
-    }
-
-    function getFilteredBuilds() {
-      const search = searchInput.value.trim().toLowerCase();
-      const classFilter = filterClassSelect.value;
-      const subclassFilter = filterSubclassSelect.value;
-
-      return allBuilds.filter(build => {
-        const searchOk =
-          (build.name || "").toLowerCase().includes(search) ||
-          (build.class_name || "").toLowerCase().includes(search) ||
-          (build.subclass_name || "").toLowerCase().includes(search);
-
-        const classOk = classFilter === "all" || build.class_name === classFilter;
-        const subclassOk = subclassFilter === "all" || build.subclass_name === subclassFilter;
-
-        return searchOk && classOk && subclassOk;
-      });
-    }
-
-    function renderStats(filteredBuilds) {
-      statTotal.textContent = allBuilds.length;
-      statFiltered.textContent = filteredBuilds.length;
-      statClasses.textContent = new Set(allBuilds.map(b => b.class_name)).size;
-      statEditors.textContent = new Set(allBuilds.map(b => b.owner_id).filter(Boolean)).size;
-    }
-
-    function renderClassSummary() {
-      classSummary.innerHTML = "";
-
-      Object.keys(CLASS_DATA).forEach(className => {
-        const total = allBuilds.filter(b => b.class_name === className).length;
-        const div = document.createElement("div");
-        div.className = "class-row";
-        div.innerHTML = `<strong>${escapeHtml(className)}</strong><span>${total} build(s)</span>`;
-        classSummary.appendChild(div);
-      });
-    }
-
-    function renderToolbar(filteredBuilds) {
-      toolbarText.textContent = filteredBuilds.length
-        ? `${filteredBuilds.length} build(s) affiché(s).`
-        : "Aucun build ne correspond aux filtres actuels.";
-
-      activePills.innerHTML = "";
-
-      const pills = [];
-      if (searchInput.value.trim()) pills.push(`Recherche : ${searchInput.value.trim()}`);
-      if (filterClassSelect.value !== "all") pills.push(`Classe : ${filterClassSelect.value}`);
-      if (filterSubclassSelect.value !== "all") pills.push(`Sous-classe : ${filterSubclassSelect.value}`);
-      if (!pills.length) pills.push("Aucun filtre actif");
-
-      pills.forEach(text => {
-        const div = document.createElement("div");
-        div.className = "pill";
-        div.textContent = text;
-        activePills.appendChild(div);
-      });
-    }
-
-    function openPreview(build) {
-      modalTitle.textContent = `${build.name} — ${build.class_name} / ${build.subclass_name}`;
-      modalOpenLink.href = build.link;
-      fallbackLink.href = build.link;
-      previewFrame.src = build.link;
-      previewFallback.classList.remove("show");
-      previewModal.classList.add("open");
-
-      clearTimeout(openPreview._timer);
-      openPreview._timer = setTimeout(() => {
-        previewFallback.classList.add("show");
-      }, 3000);
-    }
-
-    function closePreview() {
-      previewModal.classList.remove("open");
-      previewFrame.src = "about:blank";
-      previewFallback.classList.remove("show");
-      clearTimeout(openPreview._timer);
-    }
-
-    function reloadPreview() {
-      const link = modalOpenLink.href;
-      if (!link) return;
-
-      previewFallback.classList.remove("show");
-      previewFrame.src = "about:blank";
-
-      setTimeout(() => {
-        previewFrame.src = link;
-        openPreview._timer = setTimeout(() => {
-          previewFallback.classList.add("show");
-        }, 3000);
-      }, 80);
-    }
-
-    function renderBuilds(filteredBuilds) {
-      buildList.innerHTML = "";
-
-      if (!filteredBuilds.length) {
-        const empty = document.createElement("div");
-        empty.className = "empty panel";
-        empty.innerHTML = `
-          <h3>Aucun build trouvé</h3>
-          <p>Ajoute un build ou modifie les filtres.</p>
-        `;
-        buildList.appendChild(empty);
-        return;
-      }
-
-      filteredBuilds.forEach(build => {
-        const isOwner = currentUser && build.owner_id === currentUser.id;
-
-        const card = document.createElement("article");
-        card.className = "card panel";
-
-        card.innerHTML = `
-          <div>
-            <h3>${escapeHtml(build.name)}</h3>
-            <div class="date">Ajouté le ${escapeHtml(formatDate(build.created_at))}</div>
-            <div class="owner">${build.owner_id ? "Build publié par un compte connecté" : ""}</div>
-          </div>
-
-          <div class="badges">
-            <span class="badge">${escapeHtml(build.class_name)}</span>
-            <span class="badge">${escapeHtml(build.subclass_name)}</span>
-          </div>
-
-          <div class="info-box">
-            <div class="info-row">
-              <div class="info-label">Lien</div>
-              <div><span class="mono" title="${escapeHtml(build.link)}">${escapeHtml(build.link)}</span></div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">Hash</div>
-              <div><span class="mono" title="${escapeHtml(getHash(build.link))}">${escapeHtml(getHash(build.link))}</span></div>
-            </div>
-          </div>
-
-          <div class="notes-box">
-            <div class="notes-title">Informations</div>
-            <div class="notes-content ${build.notes ? "" : "notes-empty"}">
-              ${build.notes ? escapeHtml(build.notes) : "Aucune information ajoutée pour ce build."}
-            </div>
-          </div>
-
-          <div class="note">
-            Clique sur <strong>Aperçu</strong> pour voir le build WynnBuilder avec ses stats.
-          </div>
-        `;
-
-        const actions = document.createElement("div");
-        actions.className = "actions";
-
-        const previewBtn = document.createElement("button");
-        previewBtn.type = "button";
-        previewBtn.textContent = "Aperçu";
-        previewBtn.addEventListener("click", () => openPreview(build));
-
-        const openBtn = document.createElement("a");
-        openBtn.className = "button-link btn-secondary";
-        openBtn.href = build.link;
-        openBtn.target = "_blank";
-        openBtn.rel = "noopener noreferrer";
-        openBtn.textContent = "Ouvrir";
-
-        const copyBtn = document.createElement("button");
-        copyBtn.type = "button";
-        copyBtn.className = "btn-secondary";
-        copyBtn.textContent = "Copier";
-        copyBtn.addEventListener("click", () => copyLink(build.link));
-
-        actions.appendChild(previewBtn);
-        actions.appendChild(openBtn);
-        actions.appendChild(copyBtn);
-
-        if (isOwner) {
-          const editBtn = document.createElement("button");
-          editBtn.type = "button";
-          editBtn.className = "btn-secondary";
-          editBtn.textContent = "Modifier";
-          editBtn.addEventListener("click", () => openEditModal(build));
-
-          const deleteBtn = document.createElement("button");
-          deleteBtn.type = "button";
-          deleteBtn.className = "btn-danger";
-          deleteBtn.textContent = "Supprimer";
-          deleteBtn.addEventListener("click", () => deleteBuild(build.id));
-
-          actions.appendChild(editBtn);
-          actions.appendChild(deleteBtn);
-        }
-
-        card.appendChild(actions);
-        buildList.appendChild(card);
-      });
-    }
-
-    function render() {
-      const filteredBuilds = getFilteredBuilds();
-      renderStats(filteredBuilds);
-      renderClassSummary();
-      renderToolbar(filteredBuilds);
-      renderBuilds(filteredBuilds);
-    }
-
-    function bindEvents() {
-      buildClassSelect.addEventListener("change", updateBuildSubclasses);
-      editClass.addEventListener("change", updateEditSubclasses);
-
-      filterClassSelect.addEventListener("change", () => {
-        updateFilterSubclasses();
-        render();
-      });
-
-      filterSubclassSelect.addEventListener("change", render);
-      searchInput.addEventListener("input", render);
-
-      addBuildBtn.addEventListener("click", addBuild);
-
-      loginBtn.addEventListener("click", openLoginModal);
-      logoutBtn.addEventListener("click", logout);
-      submitLoginBtn.addEventListener("click", login);
-      closeLoginModalBtn.addEventListener("click", closeLoginModal);
-
-      saveEditBtn.addEventListener("click", saveEdit);
-      closeEditModalBtn.addEventListener("click", closeEditModal);
-
-      scrollToAddBtn.addEventListener("click", () => {
-        addSection.scrollIntoView({ behavior: "smooth", block: "start" });
-        buildLinkInput.focus();
-      });
-
-      closePreviewBtn.addEventListener("click", closePreview);
-      reloadPreviewBtn.addEventListener("click", reloadPreview);
-
-      [loginModal, editModal, previewModal].forEach(modal => {
-        modal.addEventListener("click", (e) => {
-          if (e.target === modal) modal.classList.remove("open");
-        });
-      });
-
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          closePreview();
-          closeLoginModal();
-          closeEditModal();
-        }
-      });
-
-      previewFrame.addEventListener("load", () => {
-        previewFallback.classList.remove("show");
-        clearTimeout(openPreview._timer);
-      });
-
-      supabase.auth.onAuthStateChange(async (_event, session) => {
-        currentUser = session?.user ?? null;
-        updateAuthUI();
-        await loadBuilds();
-      });
-    }
-
-    async function init() {
-      populateClassOptions();
-      bindEvents();
-      await fetchCurrentUser();
-      await loadBuilds();
-    }
-
-    init();
-  </script>
-</body>
-</html>
+    async function saveEdit()
