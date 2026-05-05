@@ -1,1499 +1,1763 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wynn Dashboard</title>
-  <style>
-    :root {
-      --bg: #0a1220;
-      --bg2: #0f172a;
-      --panel: rgba(17, 28, 49, 0.92);
-      --panel2: #16233d;
-      --border: #26344f;
-      --text: #e5eefc;
-      --muted: #94a3b8;
-      --blue: #3b82f6;
-      --blue2: #2563eb;
-      --danger: #ef4444;
-      --danger2: #dc2626;
-      --success: #22c55e;
-      --success2: #16a34a;
-      --shadow: 0 18px 40px rgba(0,0,0,.28);
-      --radius: 18px;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Inter, Segoe UI, Arial, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(59,130,246,.14), transparent 24%),
-        linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
-      color: var(--text);
-      min-height: 100vh;
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
-
-    .brand {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-    }
-
-    .logo {
-      width: 56px;
-      height: 56px;
-      border-radius: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, rgba(59,130,246,.28), rgba(37,99,235,.08));
-      border: 1px solid rgba(96,165,250,.28);
-      box-shadow: var(--shadow);
-      font-size: 24px;
-    }
-
-    .brand h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-
-    .brand p {
-      margin: 6px 0 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .user-badge {
-      min-height: 42px;
-      display: inline-flex;
-      align-items: center;
-      padding: 0 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(22,35,61,.8);
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-
-    .stat-card {
-      padding: 18px;
-    }
-
-    .stat-label {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 10px;
-    }
-
-    .stat-value {
-      font-size: 30px;
-      font-weight: 800;
-      line-height: 1;
-      margin-bottom: 8px;
-    }
-
-    .stat-sub {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 380px 1fr;
-      gap: 18px;
-      align-items: start;
-    }
-
-    .sidebar {
-      display: grid;
-      gap: 18px;
-      position: sticky;
-      top: 18px;
-    }
-
-    .section {
-      padding: 18px;
-    }
-
-    .section h2 {
-      margin: 0 0 14px;
-      font-size: 18px;
-    }
-
-    .helper {
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .grid-fields {
-      display: grid;
-      gap: 10px;
-    }
-
-    input, select, textarea, button, a.button-link {
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      font-size: 14px;
-      font-family: inherit;
-    }
-
-    input, select {
-      height: 46px;
-      background: var(--panel2);
-      color: var(--text);
-      padding: 0 14px;
-      outline: none;
-    }
-
-    textarea {
-      min-height: 140px;
-      background: var(--panel2);
-      color: var(--text);
-      padding: 12px 14px;
-      outline: none;
-      resize: vertical;
-    }
-
-    input::placeholder,
-    textarea::placeholder {
-      color: #8192ac;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: #4d88f6;
-      box-shadow: 0 0 0 4px rgba(59,130,246,.14);
-    }
-
-    button, a.button-link {
-      height: 46px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      background: linear-gradient(180deg, var(--blue), var(--blue2));
-      color: white;
-      font-weight: 700;
-      cursor: pointer;
-      padding: 0 12px;
-      transition: .15s ease;
-    }
-
-    button:hover, a.button-link:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.03);
-    }
-
-    .btn-secondary {
-      background: #334155;
-    }
-
-    .btn-danger {
-      background: linear-gradient(180deg, var(--danger), var(--danger2));
-    }
-
-    .class-list {
-      display: grid;
-      gap: 10px;
-    }
-
-    .class-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: center;
-      padding: 12px 14px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: rgba(22,35,61,.7);
-    }
-
-    .class-row span {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .main {
-      display: grid;
-      gap: 18px;
-    }
-
-    .toolbar {
-      padding: 16px 18px;
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .toolbar h2 {
-      margin: 0;
-      font-size: 18px;
-    }
-
-    .toolbar p {
-      margin: 5px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .pills {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .pill {
-      min-height: 32px;
-      padding: 6px 12px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 999px;
-      background: rgba(22,35,61,.85);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .build-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 16px;
-    }
-
-    .card {
-      padding: 16px;
-      display: grid;
-      gap: 14px;
-      min-height: 360px;
-      background: linear-gradient(180deg, rgba(12,20,35,.96), rgba(10,17,29,.95));
-    }
-
-    .card h3 {
-      margin: 0;
-      font-size: 18px;
-      line-height: 1.25;
-      word-break: break-word;
-    }
-
-    .date {
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .badges {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .badge {
-      min-height: 30px;
-      padding: 4px 10px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 999px;
-      background: rgba(59,130,246,.12);
-      border: 1px solid rgba(96,165,250,.22);
-      color: #dbeafe;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .info-box {
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      background: rgba(22,35,61,.72);
-      padding: 14px;
-      display: grid;
-      gap: 10px;
-      width: 100%;
-      min-width: 0;
-    }
-
-    .info-row {
-      display: grid;
-      grid-template-columns: 88px minmax(0, 1fr);
-      gap: 10px;
-      align-items: start;
-      font-size: 13px;
-    }
-
-    .info-row > div:last-child {
-      min-width: 0;
-    }
-
-    .info-label {
-      color: var(--muted);
-      font-weight: 700;
-    }
-
-    .mono {
-      display: block;
-      width: 100%;
-      max-width: 100%;
-      min-width: 0;
-      border: 1px solid var(--border);
-      background: rgba(10,18,32,.65);
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-family: Consolas, monospace;
-      font-size: 12px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .notes-box {
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      background: rgba(18, 30, 52, 0.72);
-      padding: 14px;
-      display: grid;
-      gap: 8px;
-    }
-
-    .notes-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .notes-content {
-      font-size: 13px;
-      line-height: 1.6;
-      color: var(--text);
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .notes-empty {
-      color: var(--muted);
-      font-style: italic;
-    }
-
-    .note {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .actions {
-      margin-top: auto;
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
-    }
-
-    .actions button,
-    .actions a.button-link {
-      height: 42px;
-      min-width: 0;
-      font-size: 13px;
-    }
-
-    .empty {
-      padding: 50px 20px;
-      text-align: center;
-      border-radius: 20px;
-      border: 1px dashed var(--border);
-      color: var(--muted);
-    }
-
-    .empty h3 {
-      margin: 0 0 8px;
-      color: var(--text);
-      font-size: 20px;
-    }
-
-    .status {
-      margin-top: 10px;
-      min-height: 18px;
-      font-size: 13px;
-      color: var(--muted);
-      white-space: pre-wrap;
-    }
-
-    .status.success {
-      color: #4ade80;
-    }
-
-    .status.error {
-      color: #f87171;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .modal {
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      background: rgba(2,6,23,.8);
-      z-index: 200;
-      padding: 18px;
-    }
-
-    .modal.open {
-      display: flex;
-    }
-
-    .modal-box {
-      width: min(760px, 100%);
-      max-height: 92vh;
-      overflow: auto;
-      background: rgba(10,18,32,.98);
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-    }
-
-    .modal-box.large {
-      width: min(1460px, 100%);
-      height: min(92vh, 980px);
-      padding: 0;
-      overflow: hidden;
-      display: grid;
-      grid-template-rows: auto 1fr;
-    }
-
-    .modal-head {
-      padding: 16px 18px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .modal-head h3 {
-      margin: 0;
-      font-size: 18px;
-    }
-
-    .modal-head p {
-      margin: 5px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .modal-actions button,
-    .modal-actions a.button-link {
-      width: auto;
-      min-width: 125px;
-      height: 42px;
-    }
-
-    .modal-body {
-      padding: 18px;
-      display: grid;
-      gap: 14px;
-    }
-
-    .modal-body.preview-body {
-      position: relative;
-      background: #0b1220;
-      padding: 0;
-    }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
-    .fallback {
-      position: absolute;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 24px;
-      background: rgba(11,18,32,.97);
-      color: var(--muted);
-    }
-
-    .fallback.show {
-      display: flex;
-    }
-
-    .fallback-box {
-      max-width: 420px;
-      display: grid;
-      gap: 12px;
-      justify-items: center;
-    }
-
-    .fallback-box h4 {
-      margin: 0;
-      color: var(--text);
-      font-size: 22px;
-    }
-
-    @media (max-width: 1200px) {
-      .stats {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .layout {
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        position: static;
-      }
-    }
-
-    @media (max-width: 760px) {
-      .container {
-        padding: 16px;
-      }
-
-      .stats {
-        grid-template-columns: 1fr;
-      }
-
-      .build-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .actions {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#0a1220" />
+<title>Wynn Dashboard</title>
+
+<style>
+/* ==========================================================================
+   Tokens — variables theme
+   ========================================================================== */
+:root[data-theme="dark"] {
+  --bg-1: #0a1220;
+  --bg-2: #0f172a;
+  --panel: rgba(17, 28, 49, 0.92);
+  --panel-2: #16233d;
+  --border: #26344f;
+  --border-strong: #3a4d72;
+  --text: #e5eefc;
+  --muted: #94a3b8;
+  --muted-2: #64748b;
+  --blue: #3b82f6;
+  --blue-2: #2563eb;
+  --blue-glow: rgba(59, 130, 246, 0.35);
+  --danger: #ef4444;
+  --danger-2: #dc2626;
+  --success: #22c55e;
+  --success-2: #16a34a;
+  --warning: #f59e0b;
+  --shadow: 0 18px 40px rgba(0,0,0,.32);
+  --shadow-sm: 0 2px 6px rgba(0,0,0,.22);
+}
+:root[data-theme="light"] {
+  --bg-1: #f8fafc;
+  --bg-2: #eef2f8;
+  --panel: rgba(255, 255, 255, 0.96);
+  --panel-2: #f1f5fb;
+  --border: #d8e1ee;
+  --border-strong: #b8c4d8;
+  --text: #0f172a;
+  --muted: #475569;
+  --muted-2: #64748b;
+  --blue: #2563eb;
+  --blue-2: #1d4ed8;
+  --blue-glow: rgba(37, 99, 235, 0.18);
+  --danger: #dc2626;
+  --danger-2: #b91c1c;
+  --success: #16a34a;
+  --success-2: #15803d;
+  --warning: #d97706;
+  --shadow: 0 12px 28px rgba(15,23,42,.10);
+  --shadow-sm: 0 2px 6px rgba(15,23,42,.06);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background:
+    radial-gradient(circle at top left, var(--blue-glow), transparent 28%),
+    linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font-family: inherit; }
+
+input, textarea, select {
+  font-family: inherit;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  width: 100%;
+  transition: border-color .15s, box-shadow .15s;
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--blue-glow);
+}
+textarea { min-height: 88px; resize: vertical; }
+
+button, .button-link {
+  border: none;
+  background: linear-gradient(135deg, var(--blue), var(--blue-2));
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .12s, box-shadow .15s, opacity .15s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+button:hover, .button-link:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+button:active, .button-link:active { transform: translateY(0); }
+button:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+button.btn-secondary, .button-link.btn-secondary {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+button.btn-danger {
+  background: linear-gradient(135deg, var(--danger), var(--danger-2));
+}
+button.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+}
+button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong); }
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.icon-btn:hover { color: var(--text); border-color: var(--border-strong); }
+
+.hidden { display: none !important; }
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.brand { display: flex; gap: 14px; align-items: center; }
+.logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(59,130,246,.32), rgba(37,99,235,.10));
+  border: 1px solid rgba(96,165,250,.32);
+  box-shadow: var(--shadow);
+  font-size: 26px;
+}
+.brand h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
+.brand p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.user-badge {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 13px;
+}
+.user-badge.connected { color: var(--success); border-color: rgba(34,197,94,.4); }
+
+/* Stats */
+.stats {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-bottom: 22px;
+}
+.panel {
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.stat-card .stat-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.stat-card .stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 8px 0 4px;
+  letter-spacing: -0.02em;
+}
+.stat-card .stat-sub {
+  font-size: 12px;
+  color: var(--muted-2);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) 1fr;
+  gap: 20px;
+}
+@media (max-width: 920px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.sidebar { display: flex; flex-direction: column; gap: 16px; }
+.main { display: flex; flex-direction: column; gap: 16px; }
+
+.section { display: flex; flex-direction: column; gap: 14px; }
+.section h2 {
+  margin: 0;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.grid-fields { display: flex; flex-direction: column; gap: 10px; }
+.grid-2 {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 480px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.toolbar h2 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+}
+.toolbar p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+
+.pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill {
+  background: var(--panel-2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.pill.active { color: var(--blue); border-color: var(--blue); background: var(--blue-glow); }
+
+/* Build grid */
+.build-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  transition: border-color .15s, transform .15s, box-shadow .15s;
+}
+.card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 22px 50px rgba(0,0,0,.35);
+}
+.card h3 {
+  margin: 0;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  word-break: break-word;
+}
+.card .date { font-size: 12px; color: var(--muted-2); margin-top: 4px; }
+
+.badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: var(--muted);
+}
+.badge.class-warrior   { color: #f87171; border-color: rgba(248,113,113,.4); }
+.badge.class-archer    { color: #34d399; border-color: rgba(52,211,153,.4); }
+.badge.class-mage      { color: #60a5fa; border-color: rgba(96,165,250,.4); }
+.badge.class-assassin  { color: #c084fc; border-color: rgba(192,132,252,.4); }
+.badge.class-shaman    { color: #fbbf24; border-color: rgba(251,191,36,.4); }
+
+.info-box {
+  background: var(--panel-2);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+.info-row {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 10px;
+  align-items: baseline;
+}
+.info-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.mono {
+  font-family: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: var(--blue);
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
+.notes-box {
+  background: var(--panel-2);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+.notes-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.notes-content {
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.notes-content.empty { color: var(--muted-2); font-style: italic; }
+
+.actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+.actions button, .actions .button-link {
+  flex: 1 1 auto;
+  min-width: fit-content;
+  font-size: 13px;
+  padding: 8px 12px;
+}
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: 40px 24px;
+  color: var(--muted);
+}
+.empty h3 { margin: 0 0 6px; color: var(--text); }
+
+/* Loading state */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--muted);
+  flex-direction: column;
+  gap: 12px;
+}
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Status */
+.status {
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  display: none;
+}
+.status.success { display: block; background: rgba(34,197,94,.12); color: var(--success); }
+.status.error   { display: block; background: rgba(239,68,68,.12); color: var(--danger); }
+
+.helper { font-size: 12px; color: var(--muted-2); margin: 0; }
+
+/* Class summary */
+.class-list { display: flex; flex-direction: column; gap: 8px; }
+.class-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--panel-2);
+  border-radius: 10px;
+  font-size: 13px;
+}
+.class-row strong { font-weight: 600; }
+.class-row span { color: var(--muted); font-size: 12px; }
+
+/* Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .65);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+  padding: 20px;
+}
+.modal.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 24px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transform: scale(.98);
+  transition: transform .2s;
+}
+.modal.open .modal-box { transform: scale(1); }
+.modal-box.large { max-width: 920px; }
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.modal-head h3 { margin: 0; font-size: 19px; }
+.modal-head p { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+.modal-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* Preview modal */
+.preview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.preview-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+.meta-item {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.meta-item .meta-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 700;
+}
+.meta-item .meta-value {
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 4px;
+  word-break: break-word;
+}
+
+.preview-hash {
+  font-family: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  color: var(--blue);
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.preview-notes {
+  background: var(--panel-2);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 13px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.preview-link-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Toast */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+  pointer-events: none;
+}
+.toast {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 18px;
+  box-shadow: var(--shadow);
+  font-size: 14px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+  animation: slideIn .25s ease-out;
+}
+.toast.success { border-left: 4px solid var(--success); }
+.toast.error   { border-left: 4px solid var(--danger); }
+.toast.info    { border-left: 4px solid var(--blue); }
+.toast.removing { animation: slideOut .2s ease-in forwards; }
+@keyframes slideIn  { from { transform: translateX(100%); opacity: 0; } }
+@keyframes slideOut { to   { transform: translateX(120%); opacity: 0; } }
+
+/* Sort + view controls */
+.sort-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.sort-row label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Skeleton */
+.skeleton {
+  background: linear-gradient(90deg, var(--panel-2) 0%, var(--border) 50%, var(--panel-2) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
 </head>
+
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="brand">
-        <div class="logo">⚔️</div>
-        <div>
-          <h1>Wynn Dashboard</h1>
-          <p>Builds publics, gestion réservée aux comptes connectés</p>
-        </div>
-      </div>
+<div class="container">
 
-      <div class="header-actions">
-        <div id="userBadge" class="user-badge">Non connecté</div>
-        <button id="loginBtn" type="button" style="width:auto;min-width:150px;">Connexion admin</button>
-        <button id="logoutBtn" type="button" class="btn-secondary hidden" style="width:auto;min-width:120px;">Déconnexion</button>
-        <button id="scrollToAddBtn" type="button" class="hidden" style="width:auto;min-width:170px;">Ajouter un build</button>
+  <!-- Header -->
+  <header class="header">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">⚔️</div>
+      <div>
+        <h1>Wynn Dashboard</h1>
+        <p>Builds publics — gestion réservée aux comptes connectés</p>
       </div>
     </div>
 
-    <section class="stats">
-      <div class="panel stat-card">
-        <div class="stat-label">Builds enregistrés</div>
-        <div class="stat-value" id="statTotal">0</div>
-        <div class="stat-sub">Tous les builds sauvegardés en ligne</div>
-      </div>
-      <div class="panel stat-card">
-        <div class="stat-label">Résultats affichés</div>
-        <div class="stat-value" id="statFiltered">0</div>
-        <div class="stat-sub">Après filtres</div>
-      </div>
-      <div class="panel stat-card">
-        <div class="stat-label">Classes utilisées</div>
-        <div class="stat-value" id="statClasses">0</div>
-        <div class="stat-sub">Classes différentes</div>
-      </div>
-      <div class="panel stat-card">
-        <div class="stat-label">Comptes éditeurs</div>
-        <div class="stat-value" id="statEditors">0</div>
-        <div class="stat-sub">Utilisateurs ayant publié des builds</div>
-      </div>
-    </section>
-
-    <div class="layout">
-      <aside class="sidebar">
-        <section class="panel section hidden" id="addSection">
-          <h2>Ajouter un build</h2>
-
-          <div class="grid-fields">
-            <input id="buildName" type="text" placeholder="Nom du build (optionnel)" />
-            <input id="buildLink" type="text" placeholder="Lien WynnBuilder" />
-            <select id="buildClass"></select>
-            <select id="buildSubclass"></select>
-            <textarea id="buildNotes" placeholder="Informations, cycle, conseils, remarques..."></textarea>
-            <button id="addBuildBtn" type="button">Ajouter</button>
-          </div>
-
-          <div id="statusMessage" class="status"></div>
-
-          <p class="helper">
-            Cette zone n’est visible que pour les comptes connectés.
-          </p>
-        </section>
-
-        <section class="panel section">
-          <h2>Filtres</h2>
-
-          <div class="grid-fields">
-            <input id="searchInput" type="text" placeholder="Rechercher..." />
-            <select id="filterClass">
-              <option value="all">Toutes les classes</option>
-            </select>
-            <select id="filterSubclass">
-              <option value="all">Toutes les sous-classes</option>
-            </select>
-          </div>
-        </section>
-
-        <section class="panel section">
-          <h2>Répartition</h2>
-          <div id="classSummary" class="class-list"></div>
-        </section>
-      </aside>
-
-      <main class="main">
-        <section class="panel toolbar">
-          <div>
-            <h2>Mes builds</h2>
-            <p id="toolbarText">Chargement...</p>
-          </div>
-          <div id="activePills" class="pills"></div>
-        </section>
-
-        <section id="buildList" class="build-grid"></section>
-      </main>
+    <div class="header-actions">
+      <button id="themeToggle" type="button" class="icon-btn" aria-label="Basculer thème">🌙</button>
+      <div id="userBadge" class="user-badge">Non connecté</div>
+      <button id="loginBtn" type="button">Connexion</button>
+      <button id="logoutBtn" type="button" class="btn-secondary hidden">Déconnexion</button>
+      <button id="scrollToAddBtn" type="button" class="hidden">+ Build</button>
     </div>
-  </div>
+  </header>
 
-  <div id="loginModal" class="modal">
-    <div class="modal-box">
-      <div class="modal-head">
-        <div>
-          <h3>Connexion admin</h3>
-          <p>Connecte-toi avec ton compte Supabase.</p>
-        </div>
-        <div class="modal-actions">
-          <button id="closeLoginModalBtn" type="button" class="btn-secondary">Fermer</button>
-        </div>
-      </div>
+  <!-- Stats -->
+  <section class="stats" aria-label="Statistiques">
+    <div class="panel stat-card">
+      <div class="stat-label">Builds</div>
+      <div class="stat-value" id="statTotal">0</div>
+      <div class="stat-sub">Total enregistrés</div>
+    </div>
+    <div class="panel stat-card">
+      <div class="stat-label">Affichés</div>
+      <div class="stat-value" id="statFiltered">0</div>
+      <div class="stat-sub">Après filtres</div>
+    </div>
+    <div class="panel stat-card">
+      <div class="stat-label">Classes</div>
+      <div class="stat-value" id="statClasses">0</div>
+      <div class="stat-sub">Différentes</div>
+    </div>
+    <div class="panel stat-card">
+      <div class="stat-label">Éditeurs</div>
+      <div class="stat-value" id="statEditors">0</div>
+      <div class="stat-sub">Comptes ayant publié</div>
+    </div>
+  </section>
 
-      <div class="modal-body">
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+      <!-- Add build (visible only when logged in) -->
+      <section class="panel section hidden" id="addSection">
+        <h2>Ajouter un build</h2>
         <div class="grid-fields">
-          <input id="loginEmail" type="email" placeholder="Email" />
-          <input id="loginPassword" type="password" placeholder="Mot de passe" />
-          <button id="submitLoginBtn" type="button">Se connecter</button>
+          <input id="buildName" type="text" placeholder="Nom du build (optionnel)" />
+          <input id="buildLink" type="text" placeholder="Lien WynnBuilder" />
+          <select id="buildClass" aria-label="Classe"></select>
+          <select id="buildSubclass" aria-label="Sous-classe"></select>
+          <input id="buildTags" type="text" placeholder="Tags (séparés par des virgules)" />
+          <textarea id="buildNotes" placeholder="Informations, cycle, conseils, remarques..."></textarea>
+          <button id="addBuildBtn" type="button">Ajouter</button>
         </div>
-        <div id="loginStatus" class="status"></div>
-      </div>
-    </div>
-  </div>
+        <div id="statusMessage" class="status" role="status" aria-live="polite"></div>
+        <p class="helper">Cette zone n'est visible que pour les comptes connectés.</p>
+      </section>
 
-  <div id="editModal" class="modal">
-    <div class="modal-box">
-      <div class="modal-head">
-        <div>
-          <h3>Modifier le build</h3>
-          <p>Nom, lien, classe, sous-classe et informations.</p>
-        </div>
-        <div class="modal-actions">
-          <button id="closeEditModalBtn" type="button" class="btn-secondary">Fermer</button>
-        </div>
-      </div>
-
-      <div class="modal-body">
+      <!-- Filters -->
+      <section class="panel section">
+        <h2>Filtres</h2>
         <div class="grid-fields">
-          <input id="editName" type="text" placeholder="Nom du build" />
-          <input id="editLink" type="text" placeholder="Lien WynnBuilder" />
-          <select id="editClass"></select>
-          <select id="editSubclass"></select>
-          <textarea id="editNotes" placeholder="Informations, cycle, conseils..."></textarea>
-          <button id="saveEditBtn" type="button">Enregistrer</button>
+          <input id="searchInput" type="text" placeholder="Rechercher... (Ctrl+K)" aria-label="Rechercher" />
+          <select id="filterClass" aria-label="Filtre classe">
+            <option value="all">Toutes les classes</option>
+          </select>
+          <select id="filterSubclass" aria-label="Filtre sous-classe">
+            <option value="all">Toutes les sous-classes</option>
+          </select>
+          <input id="filterTag" type="text" placeholder="Filtrer par tag..." aria-label="Filtre tag" />
         </div>
-        <div id="editStatus" class="status"></div>
-      </div>
-    </div>
-  </div>
 
-  <div id="previewModal" class="modal">
-    <div class="modal-box large">
-      <div class="modal-head">
+        <div class="sort-row">
+          <label for="sortSelect">Trier :</label>
+          <select id="sortSelect" aria-label="Tri">
+            <option value="date_desc">Plus récents</option>
+            <option value="date_asc">Plus anciens</option>
+            <option value="name_asc">Nom A→Z</option>
+            <option value="name_desc">Nom Z→A</option>
+            <option value="class">Par classe</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Tools -->
+      <section class="panel section">
+        <h2>Outils</h2>
+        <div class="grid-fields">
+          <button id="exportBtn" type="button" class="btn-secondary">Exporter mes builds (JSON)</button>
+          <button id="importBtn" type="button" class="btn-secondary hidden">Importer depuis JSON</button>
+          <input id="importFile" type="file" accept="application/json" class="hidden" />
+        </div>
+      </section>
+
+      <!-- Repartition -->
+      <section class="panel section">
+        <h2>Répartition</h2>
+        <div id="classSummary" class="class-list"></div>
+      </section>
+
+      <!-- Help -->
+      <section class="panel section">
+        <h2>Raccourcis</h2>
+        <div class="class-list">
+          <div class="class-row"><strong>Recherche</strong><span><span class="kbd">Ctrl</span> + <span class="kbd">K</span></span></div>
+          <div class="class-row"><strong>Nouveau</strong><span><span class="kbd">N</span></span></div>
+          <div class="class-row"><strong>Fermer</strong><span><span class="kbd">Esc</span></span></div>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <section class="panel toolbar">
         <div>
-          <h3 id="modalTitle">Aperçu du build</h3>
-          <p>Stuff, stats, DPS, EHP et détails via WynnBuilder.</p>
+          <h2>Mes builds</h2>
+          <p id="toolbarText">Chargement...</p>
         </div>
+        <div id="activePills" class="pills"></div>
+      </section>
 
-        <div class="modal-actions">
-          <a id="modalOpenLink" class="button-link btn-secondary" href="#" target="_blank" rel="noopener noreferrer">Ouvrir</a>
-          <button id="reloadPreviewBtn" type="button" class="btn-secondary">Recharger</button>
-          <button id="closePreviewBtn" type="button">Fermer</button>
-        </div>
+      <section id="buildList" class="build-grid" aria-live="polite">
+        <div class="loading"><div class="spinner"></div><div>Chargement des builds...</div></div>
+      </section>
+    </main>
+
+  </div>
+</div>
+
+<!-- Login modal -->
+<div id="loginModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <h3 id="loginTitle">Connexion</h3>
+        <p>Connecte-toi avec ton compte Supabase.</p>
+      </div>
+      <button id="closeLoginModalBtn" type="button" class="btn-ghost" aria-label="Fermer">✕</button>
+    </div>
+    <div class="grid-fields">
+      <input id="loginEmail" type="email" placeholder="Email" autocomplete="email" />
+      <input id="loginPassword" type="password" placeholder="Mot de passe" autocomplete="current-password" />
+      <button id="submitLoginBtn" type="button">Se connecter</button>
+    </div>
+    <div id="loginStatus" class="status" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div id="editModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <h3 id="editTitle">Modifier le build</h3>
+        <p>Nom, lien, classe, sous-classe, tags et informations.</p>
+      </div>
+      <button id="closeEditModalBtn" type="button" class="btn-ghost" aria-label="Fermer">✕</button>
+    </div>
+    <div class="grid-fields">
+      <input id="editName" type="text" placeholder="Nom du build" />
+      <input id="editLink" type="text" placeholder="Lien WynnBuilder" />
+      <select id="editClass" aria-label="Classe"></select>
+      <select id="editSubclass" aria-label="Sous-classe"></select>
+      <input id="editTags" type="text" placeholder="Tags (séparés par virgules)" />
+      <textarea id="editNotes" placeholder="Informations, cycle, conseils..."></textarea>
+      <button id="saveEditBtn" type="button">Enregistrer</button>
+    </div>
+    <div id="editStatus" class="status" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<!-- Preview modal (custom rendering, no iframe) -->
+<div id="previewModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
+  <div class="modal-box large">
+    <div class="modal-head">
+      <div>
+        <h3 id="previewTitle">Aperçu du build</h3>
+        <p id="previewSubtitle">Détails et lien WynnBuilder</p>
+      </div>
+      <div class="modal-actions">
+        <button id="copyHashBtn" type="button" class="btn-secondary">Copier hash</button>
+        <button id="closePreviewBtn" type="button" class="btn-ghost" aria-label="Fermer">✕</button>
+      </div>
+    </div>
+
+    <div class="preview-card">
+      <div class="preview-meta" id="previewMeta"></div>
+
+      <div>
+        <div class="info-label" style="margin-bottom: 6px;">Hash</div>
+        <div id="previewHash" class="preview-hash"></div>
       </div>
 
-      <div class="modal-body preview-body">
-        <iframe id="previewFrame" title="Preview WynnBuilder"></iframe>
+      <div id="previewNotesBlock" style="display:none;">
+        <div class="info-label" style="margin-bottom: 6px;">Informations</div>
+        <div id="previewNotes" class="preview-notes"></div>
+      </div>
 
-        <div id="previewFallback" class="fallback">
-          <div class="fallback-box">
-            <h4>Aperçu non affiché ici</h4>
-            <p>Ton navigateur bloque peut-être l’intégration. Ouvre directement le build.</p>
-            <a id="fallbackLink" class="button-link" href="#" target="_blank" rel="noopener noreferrer">Ouvrir le build</a>
-          </div>
-        </div>
+      <div class="preview-link-bar">
+        <a id="previewOpenBtn" class="button-link" href="#" target="_blank" rel="noopener noreferrer">
+          🔗 Ouvrir dans WynnBuilder
+        </a>
+        <button id="previewTryEmbedBtn" type="button" class="btn-secondary">Tenter intégration</button>
+      </div>
+
+      <div id="previewEmbedBlock" style="display:none; margin-top: 12px;">
+        <iframe id="previewFrame" title="Preview WynnBuilder"
+                style="width:100%; height:600px; border-radius:12px; border:1px solid var(--border); background: var(--panel-2);"
+                sandbox="allow-scripts allow-same-origin allow-forms"
+                referrerpolicy="no-referrer"></iframe>
+        <p class="helper" style="margin-top:8px;">
+          ⚠️ WynnBuilder peut bloquer l'intégration. Si la frame reste vide, utilise "Ouvrir dans WynnBuilder".
+        </p>
       </div>
     </div>
   </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
 <script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-  const SUPABASE_URL = "https://tceawcjiusgqmxwoncqc.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_4B09BmruYat2f2tY_s4XQQ_dzfOII_w";
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// =============================================================================
+// CONFIGURATION
+// =============================================================================
+const SUPABASE_URL = "https://tceawcjiusgqmxwoncqc.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_4B09BmruYat2f2tY_s4XQQ_dzfOII_w";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const CLASS_DATA = {
-    Warrior: ["Fallen", "Battle Monk", "Paladin"],
-    Archer: ["Boltslinger", "Trapper", "Sharpshooter"],
-    Mage: ["Light Bender", "Riftwalker", "Arcanist"],
-    Assassin: ["Shadestepper", "Trickster", "Acrobat"],
-    Shaman: ["Summoner", "Ritualist", "Acolyte"]
-  };
+const CLASS_DATA = {
+  Warrior:  ["Fallen", "Battle Monk", "Paladin"],
+  Archer:   ["Boltslinger", "Trapper", "Sharpshooter"],
+  Mage:     ["Light Bender", "Riftwalker", "Arcanist"],
+  Assassin: ["Shadestepper", "Trickster", "Acrobat"],
+  Shaman:   ["Summoner", "Ritualist", "Acolyte"]
+};
 
- let allBuilds = [];
-let currentUser = null;
-let currentSession = null;
-let editingBuildId = null;
+const CLASS_TO_WEAPON = {
+  Warrior: "spear", Archer: "bow", Mage: "wand",
+  Assassin: "dagger", Shaman: "relik"
+};
 
-  const userBadge = document.getElementById("userBadge");
-  const loginBtn = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const scrollToAddBtn = document.getElementById("scrollToAddBtn");
-  const addSection = document.getElementById("addSection");
+const VALID_BUILDER_DOMAINS = [
+  "wynnbuilder-beta.github.io",
+  "wynnbuilder.github.io",
+  "hppeng-wynn.github.io",
+  "wynnbuilder.com", "www.wynnbuilder.com"
+];
 
-  const buildNameInput = document.getElementById("buildName");
-  const buildLinkInput = document.getElementById("buildLink");
-  const buildClassSelect = document.getElementById("buildClass");
-  const buildSubclassSelect = document.getElementById("buildSubclass");
-  const buildNotesInput = document.getElementById("buildNotes");
-  const addBuildBtn = document.getElementById("addBuildBtn");
-  const statusMessage = document.getElementById("statusMessage");
+// =============================================================================
+// STATE
+// =============================================================================
+const state = {
+  allBuilds: [],
+  currentUser: null,
+  currentSession: null,
+  editingBuildId: null,
+  searchTimer: null,
+  toastTimers: new Map(),
+};
 
-  const searchInput = document.getElementById("searchInput");
-  const filterClassSelect = document.getElementById("filterClass");
-  const filterSubclassSelect = document.getElementById("filterSubclass");
+// =============================================================================
+// DOM SHORTCUTS
+// =============================================================================
+const $ = id => document.getElementById(id);
 
-  const buildList = document.getElementById("buildList");
-  const classSummary = document.getElementById("classSummary");
-  const toolbarText = document.getElementById("toolbarText");
-  const activePills = document.getElementById("activePills");
+const ui = {
+  userBadge: $("userBadge"), loginBtn: $("loginBtn"), logoutBtn: $("logoutBtn"),
+  scrollToAddBtn: $("scrollToAddBtn"), addSection: $("addSection"),
+  themeToggle: $("themeToggle"),
 
-  const statTotal = document.getElementById("statTotal");
-  const statFiltered = document.getElementById("statFiltered");
-  const statClasses = document.getElementById("statClasses");
-  const statEditors = document.getElementById("statEditors");
+  buildName: $("buildName"), buildLink: $("buildLink"),
+  buildClass: $("buildClass"), buildSubclass: $("buildSubclass"),
+  buildTags: $("buildTags"), buildNotes: $("buildNotes"),
+  addBuildBtn: $("addBuildBtn"), statusMessage: $("statusMessage"),
 
-  const loginModal = document.getElementById("loginModal");
-  const loginEmail = document.getElementById("loginEmail");
-  const loginPassword = document.getElementById("loginPassword");
-  const submitLoginBtn = document.getElementById("submitLoginBtn");
-  const closeLoginModalBtn = document.getElementById("closeLoginModalBtn");
-  const loginStatus = document.getElementById("loginStatus");
+  searchInput: $("searchInput"),
+  filterClass: $("filterClass"), filterSubclass: $("filterSubclass"),
+  filterTag: $("filterTag"), sortSelect: $("sortSelect"),
 
-  const editModal = document.getElementById("editModal");
-  const editName = document.getElementById("editName");
-  const editLink = document.getElementById("editLink");
-  const editClass = document.getElementById("editClass");
-  const editSubclass = document.getElementById("editSubclass");
-  const editNotes = document.getElementById("editNotes");
-  const saveEditBtn = document.getElementById("saveEditBtn");
-  const closeEditModalBtn = document.getElementById("closeEditModalBtn");
-  const editStatus = document.getElementById("editStatus");
+  buildList: $("buildList"), classSummary: $("classSummary"),
+  toolbarText: $("toolbarText"), activePills: $("activePills"),
 
-  const previewModal = document.getElementById("previewModal");
-  const previewFrame = document.getElementById("previewFrame");
-  const previewFallback = document.getElementById("previewFallback");
-  const modalTitle = document.getElementById("modalTitle");
-  const modalOpenLink = document.getElementById("modalOpenLink");
-  const fallbackLink = document.getElementById("fallbackLink");
-  const reloadPreviewBtn = document.getElementById("reloadPreviewBtn");
-  const closePreviewBtn = document.getElementById("closePreviewBtn");
+  statTotal: $("statTotal"), statFiltered: $("statFiltered"),
+  statClasses: $("statClasses"), statEditors: $("statEditors"),
 
-  console.log("Wynn Dashboard Supabase script loaded");
+  loginModal: $("loginModal"), loginEmail: $("loginEmail"),
+  loginPassword: $("loginPassword"), submitLoginBtn: $("submitLoginBtn"),
+  closeLoginModalBtn: $("closeLoginModalBtn"), loginStatus: $("loginStatus"),
 
-  function escapeHtml(text) {
-    return String(text ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
+  editModal: $("editModal"), editName: $("editName"), editLink: $("editLink"),
+  editClass: $("editClass"), editSubclass: $("editSubclass"),
+  editTags: $("editTags"), editNotes: $("editNotes"),
+  saveEditBtn: $("saveEditBtn"), closeEditModalBtn: $("closeEditModalBtn"),
+  editStatus: $("editStatus"),
 
-  function formatDate(iso) {
-    try {
-      return new Date(iso).toLocaleDateString("fr-FR");
-    } catch {
-      return "-";
-    }
-  }
+  previewModal: $("previewModal"), previewTitle: $("previewTitle"),
+  previewSubtitle: $("previewSubtitle"), previewMeta: $("previewMeta"),
+  previewHash: $("previewHash"), previewNotesBlock: $("previewNotesBlock"),
+  previewNotes: $("previewNotes"), previewOpenBtn: $("previewOpenBtn"),
+  previewTryEmbedBtn: $("previewTryEmbedBtn"), previewEmbedBlock: $("previewEmbedBlock"),
+  previewFrame: $("previewFrame"), copyHashBtn: $("copyHashBtn"),
+  closePreviewBtn: $("closePreviewBtn"),
 
-  function showStatus(target, text, type = "") {
-    target.textContent = text;
-    target.className = "status " + type;
-  }
+  exportBtn: $("exportBtn"), importBtn: $("importBtn"), importFile: $("importFile"),
+  toastContainer: $("toastContainer"),
+};
 
-  function isValidLink(link) {
-    try {
-      const url = new URL(link);
-      return url.protocol === "https:" || url.protocol === "http:";
-    } catch {
-      return false;
-    }
-  }
+// =============================================================================
+// UTILS
+// =============================================================================
+function escapeHtml(text) {
+  return String(text ?? "")
+    .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+}
 
-  function getHash(link) {
-    try {
-      const url = new URL(link);
-      return url.hash ? url.hash.slice(1) : "Aucun hash";
-    } catch {
-      return "Hash indisponible";
-    }
-  }
+function formatDate(iso) {
+  try {
+    return new Date(iso).toLocaleDateString("fr-FR",
+      { day: "2-digit", month: "short", year: "numeric" });
+  } catch { return "-"; }
+}
 
-  function populateClassOptions() {
-    buildClassSelect.innerHTML = "";
-    editClass.innerHTML = "";
-    filterClassSelect.innerHTML = '<option value="all">Toutes les classes</option>';
+function isValidLink(link) {
+  try {
+    const url = new URL(link);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return false;
+    return VALID_BUILDER_DOMAINS.some(d => url.hostname === d);
+  } catch { return false; }
+}
 
-    Object.keys(CLASS_DATA).forEach(className => {
-      const o1 = document.createElement("option");
-      o1.value = className;
-      o1.textContent = className;
-      buildClassSelect.appendChild(o1);
+function getHash(link) {
+  try {
+    const url = new URL(link);
+    return url.hash ? url.hash.slice(1) : "";
+  } catch { return ""; }
+}
 
-      const o2 = document.createElement("option");
-      o2.value = className;
-      o2.textContent = className;
-      editClass.appendChild(o2);
+function getBuilderType(link) {
+  try {
+    const url = new URL(link);
+    if (url.pathname.includes("/builder")) return "Build";
+    if (url.pathname.includes("/crafter")) return "Craft";
+    if (url.pathname.includes("/atree"))   return "ATree";
+    return "Inconnu";
+  } catch { return "?"; }
+}
 
-      const o3 = document.createElement("option");
-      o3.value = className;
-      o3.textContent = className;
-      filterClassSelect.appendChild(o3);
-    });
+function classOfTag(className) {
+  const m = { Warrior:"warrior", Archer:"archer", Mage:"mage",
+              Assassin:"assassin", Shaman:"shaman" };
+  return m[className] || "";
+}
 
-    updateBuildSubclasses();
-    updateEditSubclasses();
-    updateFilterSubclasses();
-  }
+function parseTags(raw) {
+  return String(raw || "").split(/[,;]/)
+    .map(s => s.trim()).filter(Boolean).slice(0, 15);
+}
 
-  function updateBuildSubclasses() {
-    const className = buildClassSelect.value;
-    buildSubclassSelect.innerHTML = "";
-    (CLASS_DATA[className] || []).forEach(subclass => {
-      const opt = document.createElement("option");
-      opt.value = subclass;
-      opt.textContent = subclass;
-      buildSubclassSelect.appendChild(opt);
-    });
-  }
+function tagsToString(arr) {
+  return Array.isArray(arr) ? arr.join(", ") : (arr || "");
+}
 
-  function updateEditSubclasses() {
-    const className = editClass.value;
-    editSubclass.innerHTML = "";
-    (CLASS_DATA[className] || []).forEach(subclass => {
-      const opt = document.createElement("option");
-      opt.value = subclass;
-      opt.textContent = subclass;
-      editSubclass.appendChild(opt);
-    });
-  }
+// =============================================================================
+// TOASTS (replaces alert())
+// =============================================================================
+function toast(message, type = "info", duration = 3000) {
+  const el = document.createElement("div");
+  el.className = `toast ${type}`;
+  el.setAttribute("role", "alert");
+  el.textContent = message;
+  ui.toastContainer.appendChild(el);
 
-  function updateFilterSubclasses() {
-    const className = filterClassSelect.value;
-    filterSubclassSelect.innerHTML = '<option value="all">Toutes les sous-classes</option>';
-    if (className === "all") return;
+  const id = Math.random().toString(36).slice(2);
+  state.toastTimers.set(id, setTimeout(() => {
+    el.classList.add("removing");
+    setTimeout(() => el.remove(), 200);
+    state.toastTimers.delete(id);
+  }, duration));
+}
 
-    (CLASS_DATA[className] || []).forEach(subclass => {
-      const opt = document.createElement("option");
-      opt.value = subclass;
-      opt.textContent = subclass;
-      filterSubclassSelect.appendChild(opt);
-    });
-  }
+// =============================================================================
+// THEME
+// =============================================================================
+function loadTheme() {
+  const saved = localStorage.getItem("wynn-theme") || "dark";
+  document.documentElement.setAttribute("data-theme", saved);
+  ui.themeToggle.textContent = saved === "dark" ? "🌙" : "☀️";
+}
 
-  function updateAuthUI() {
-    const loggedIn = !!currentUser;
-    userBadge.textContent = loggedIn ? `Connecté : ${currentUser.email}` : "Non connecté";
-    loginBtn.classList.toggle("hidden", loggedIn);
-    logoutBtn.classList.toggle("hidden", !loggedIn);
-    scrollToAddBtn.classList.toggle("hidden", !loggedIn);
-    addSection.classList.toggle("hidden", !loggedIn);
-  }
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute("data-theme");
+  const next = cur === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("wynn-theme", next);
+  ui.themeToggle.textContent = next === "dark" ? "🌙" : "☀️";
+}
+
+// =============================================================================
+// AUTH
+// =============================================================================
+function updateAuthUI() {
+  const loggedIn = !!state.currentUser;
+  ui.userBadge.textContent = loggedIn ? state.currentUser.email : "Non connecté";
+  ui.userBadge.classList.toggle("connected", loggedIn);
+  ui.loginBtn.classList.toggle("hidden", loggedIn);
+  ui.logoutBtn.classList.toggle("hidden", !loggedIn);
+  ui.scrollToAddBtn.classList.toggle("hidden", !loggedIn);
+  ui.addSection.classList.toggle("hidden", !loggedIn);
+  ui.importBtn.classList.toggle("hidden", !loggedIn);
+}
 
 async function fetchCurrentUser() {
-  const { data, error } = await supabase.auth.getSession();
-  console.log("fetchCurrentUser session", { data, error });
-
-  currentSession = data?.session ?? null;
-  currentUser = currentSession?.user ?? null;
-
+  const { data } = await supabase.auth.getSession();
+  state.currentSession = data?.session ?? null;
+  state.currentUser = state.currentSession?.user ?? null;
   updateAuthUI();
 }
 
-  async function loadBuilds() {
-    console.log("loadBuilds start");
-    const { data, error } = await supabase
-      .from("builds")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    console.log("loadBuilds result", { data, error });
-
-    if (error) {
-      toolbarText.textContent = `Erreur chargement : ${error.message}`;
-      return;
-    }
-
-    allBuilds = data || [];
-    render();
+async function login() {
+  const email = ui.loginEmail.value.trim();
+  const password = ui.loginPassword.value;
+  if (!email || !password) {
+    showStatus(ui.loginStatus, "Email et mot de passe requis.", "error");
+    return;
   }
+  ui.submitLoginBtn.disabled = true;
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  ui.submitLoginBtn.disabled = false;
+  if (error) {
+    showStatus(ui.loginStatus, "Connexion impossible : " + error.message, "error");
+    return;
+  }
+  ui.loginEmail.value = ""; ui.loginPassword.value = "";
+  closeModal(ui.loginModal);
+  await fetchCurrentUser();
+  await loadBuilds();
+  toast("Connecté !", "success");
+}
+
+async function logout() {
+  const { error } = await supabase.auth.signOut({ scope: "local" });
+  if (error) { toast("Erreur déconnexion : " + error.message, "error"); return; }
+  state.currentSession = null;
+  state.currentUser = null;
+  updateAuthUI();
+  await loadBuilds();
+  toast("Déconnecté.", "info");
+}
+
+// =============================================================================
+// BUILDS - CRUD
+// =============================================================================
+async function loadBuilds() {
+  ui.toolbarText.textContent = "Chargement...";
+  const { data, error } = await supabase
+    .from("builds").select("*")
+    .order("created_at", { ascending: false });
+  if (error) {
+    ui.toolbarText.textContent = "Erreur : " + error.message;
+    toast("Erreur chargement : " + error.message, "error");
+    return;
+  }
+  state.allBuilds = data || [];
+  render();
+}
 
 async function addBuild() {
-  console.log("addBuild clicked");
-
-  if (!currentUser || !currentSession) {
-    showStatus(statusMessage, "Tu dois être connecté.", "error");
+  if (!state.currentUser || !state.currentSession) {
+    showStatus(ui.statusMessage, "Tu dois être connecté.", "error");
     return;
   }
 
-  const className = buildClassSelect.value;
-  const subclassName = buildSubclassSelect.value;
-  const link = buildLinkInput.value.trim();
-  const name = buildNameInput.value.trim() || `${className} • ${subclassName}`;
-  const notes = buildNotesInput.value.trim();
+  const className = ui.buildClass.value;
+  const subclassName = ui.buildSubclass.value;
+  const link = ui.buildLink.value.trim();
+  const name = ui.buildName.value.trim() || `${className} • ${subclassName}`;
+  const notes = ui.buildNotes.value.trim();
+  const tags = parseTags(ui.buildTags.value);
 
-  if (!link) {
-    showStatus(statusMessage, "Tu dois coller un lien.", "error");
-    return;
-  }
-
+  if (!link) { showStatus(ui.statusMessage, "Tu dois coller un lien.", "error"); return; }
   if (!isValidLink(link)) {
-    showStatus(statusMessage, "Le lien n'est pas valide.", "error");
+    showStatus(ui.statusMessage,
+      "Lien invalide. Utilise wynnbuilder.com ou wynnbuilder-beta.github.io.", "error");
     return;
   }
 
   const payload = {
-    name,
-    link,
-    class_name: className,
-    subclass_name: subclassName,
-    notes,
-    owner_id: currentUser.id
+    name, link, class_name: className, subclass_name: subclassName,
+    notes, tags, owner_id: state.currentUser.id
   };
 
-  console.log("insert payload", payload);
-
+  ui.addBuildBtn.disabled = true;
   try {
-    const accessToken = currentSession.access_token;
-
+    const accessToken = state.currentSession.access_token;
     if (!accessToken) {
-      showStatus(statusMessage, "Session introuvable. Reconnecte-toi.", "error");
+      showStatus(ui.statusMessage, "Session introuvable. Reconnecte-toi.", "error");
       return;
     }
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const timer = setTimeout(() => controller.abort(), 15000);
 
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/builds`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/builds`, {
       method: "POST",
       headers: {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${accessToken}`,
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
-        "Prefer": "return=representation"
+        Prefer: "return=representation"
       },
       body: JSON.stringify(payload),
       signal: controller.signal
     });
+    clearTimeout(timer);
 
-    clearTimeout(timeout);
-
-    const rawText = await response.text();
-    console.log("insert response status", response.status);
-    console.log("insert response body", rawText);
-
-    if (!response.ok) {
-      showStatus(statusMessage, `Erreur ajout : ${rawText}`, "error");
-      return;
+    if (!r.ok) {
+      // Si la colonne tags n'existe pas, retry sans tags
+      const text = await r.text();
+      if (text.includes("tags")) {
+        delete payload.tags;
+        const r2 = await fetch(`${SUPABASE_URL}/rest/v1/builds`, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify(payload),
+        });
+        if (!r2.ok) {
+          showStatus(ui.statusMessage, "Erreur ajout : " + await r2.text(), "error");
+          return;
+        }
+        toast("Build ajouté (note : la colonne 'tags' n'existe pas dans Supabase).", "info", 5000);
+      } else {
+        showStatus(ui.statusMessage, "Erreur ajout : " + text, "error");
+        return;
+      }
     }
 
-    buildNameInput.value = "";
-    buildLinkInput.value = "";
-    buildNotesInput.value = "";
-    showStatus(statusMessage, "Build ajouté avec succès.", "success");
-
+    ui.buildName.value = ""; ui.buildLink.value = ""; ui.buildNotes.value = "";
+    ui.buildTags.value = "";
+    showStatus(ui.statusMessage, "Build ajouté avec succès.", "success");
+    toast("Build ajouté.", "success");
     await loadBuilds();
   } catch (err) {
-    console.error("insert fetch error", err);
-
     if (err.name === "AbortError") {
-      showStatus(statusMessage, "La requête a expiré après 15 secondes.", "error");
-      return;
+      showStatus(ui.statusMessage, "Délai dépassé (15s).", "error");
+    } else {
+      showStatus(ui.statusMessage, "Erreur : " + (err.message || "inconnue"), "error");
     }
-
-    showStatus(statusMessage, `Erreur JS : ${err.message || "inconnue"}`, "error");
+  } finally {
+    ui.addBuildBtn.disabled = false;
   }
 }
 
-  function openLoginModal() {
-    loginStatus.textContent = "";
-    loginModal.classList.add("open");
-    loginEmail.focus();
+async function saveEdit() {
+  if (!state.currentUser || !state.editingBuildId) return;
+  const payload = {
+    name: ui.editName.value.trim(),
+    link: ui.editLink.value.trim(),
+    class_name: ui.editClass.value,
+    subclass_name: ui.editSubclass.value,
+    tags: parseTags(ui.editTags.value),
+    notes: ui.editNotes.value.trim()
+  };
+  if (!payload.name) { showStatus(ui.editStatus, "Le nom est requis.", "error"); return; }
+  if (!isValidLink(payload.link)) { showStatus(ui.editStatus, "Lien invalide.", "error"); return; }
+
+  ui.saveEditBtn.disabled = true;
+  let { error } = await supabase.from("builds").update(payload).eq("id", state.editingBuildId);
+  if (error && error.message.toLowerCase().includes("tags")) {
+    delete payload.tags;
+    ({ error } = await supabase.from("builds").update(payload).eq("id", state.editingBuildId));
   }
+  ui.saveEditBtn.disabled = false;
 
-  function closeLoginModal() {
-    loginModal.classList.remove("open");
-  }
-
-  async function login() {
-    const email = loginEmail.value.trim();
-    const password = loginPassword.value;
-
-    if (!email || !password) {
-      showStatus(loginStatus, "Email et mot de passe requis.", "error");
-      return;
-    }
-
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    console.log("login result", { data, error });
-
-    if (error) {
-      showStatus(loginStatus, `Connexion impossible : ${error.message}`, "error");
-      return;
-    }
-
-    loginEmail.value = "";
-    loginPassword.value = "";
-    closeLoginModal();
-    await fetchCurrentUser();
-    await loadBuilds();
-  }
-
-async function logout() {
-  console.log("logout clicked");
-
-  const { error } = await supabase.auth.signOut({ scope: "local" });
-  console.log("logout result", { error });
-
-  if (error) {
-    alert(`Erreur déconnexion : ${error.message}`);
-    return;
-  }
-
-  currentSession = null;
-  currentUser = null;
-  updateAuthUI();
+  if (error) { showStatus(ui.editStatus, "Modif impossible : " + error.message, "error"); return; }
+  closeModal(ui.editModal);
+  toast("Build modifié.", "success");
   await loadBuilds();
 }
 
-  function openEditModal(build) {
-    editingBuildId = build.id;
-    editName.value = build.name || "";
-    editLink.value = build.link || "";
-    editClass.value = build.class_name || "Warrior";
-    updateEditSubclasses();
-    editSubclass.value = build.subclass_name || "";
-    editNotes.value = build.notes || "";
-    editStatus.textContent = "";
-    editModal.classList.add("open");
+async function deleteBuild(id, name) {
+  if (!state.currentUser) return;
+  if (!confirm(`Supprimer "${name}" ?\n\nCette action est définitive.`)) return;
+  const { error } = await supabase.from("builds").delete().eq("id", id);
+  if (error) { toast("Suppression impossible : " + error.message, "error"); return; }
+  toast("Build supprimé.", "success");
+  await loadBuilds();
+}
+
+async function copyText(text, label = "Copié") {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(label, "success", 1800);
+  } catch {
+    toast("Impossible de copier", "error");
   }
+}
 
-  function closeEditModal() {
-    editModal.classList.remove("open");
-    editingBuildId = null;
+// =============================================================================
+// EXPORT / IMPORT
+// =============================================================================
+function exportBuilds() {
+  if (!state.allBuilds.length) { toast("Aucun build à exporter.", "info"); return; }
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    builds: state.allBuilds.map(b => ({
+      name: b.name, link: b.link, class_name: b.class_name,
+      subclass_name: b.subclass_name, notes: b.notes, tags: b.tags || []
+    }))
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `wynn-builds-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("Export téléchargé.", "success");
+}
+
+async function importBuilds(file) {
+  if (!state.currentUser || !state.currentSession) {
+    toast("Tu dois être connecté pour importer.", "error"); return;
   }
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (!Array.isArray(data.builds)) throw new Error("Format JSON invalide");
+    if (!confirm(`Importer ${data.builds.length} build(s) ?`)) return;
 
-  async function saveEdit() {
-    if (!currentUser || !editingBuildId) return;
-
-    const payload = {
-      name: editName.value.trim(),
-      link: editLink.value.trim(),
-      class_name: editClass.value,
-      subclass_name: editSubclass.value,
-      notes: editNotes.value.trim()
-    };
-
-    if (!payload.name) {
-      showStatus(editStatus, "Le nom est requis.", "error");
-      return;
-    }
-
-    if (!isValidLink(payload.link)) {
-      showStatus(editStatus, "Lien invalide.", "error");
-      return;
-    }
-
-    const { error } = await supabase
-      .from("builds")
-      .update(payload)
-      .eq("id", editingBuildId);
-
-    if (error) {
-      showStatus(editStatus, `Modification impossible : ${error.message}`, "error");
-      return;
-    }
-
-    closeEditModal();
-    await loadBuilds();
-  }
-
-  async function deleteBuild(id) {
-    if (!currentUser) return;
-    if (!confirm("Supprimer ce build ?")) return;
-
-    const { error } = await supabase.from("builds").delete().eq("id", id);
-
-    if (error) {
-      alert(`Suppression impossible : ${error.message}`);
-      return;
-    }
-
-    await loadBuilds();
-  }
-
-  async function copyLink(link) {
-    try {
-      await navigator.clipboard.writeText(link);
-      alert("Lien copié.");
-    } catch {
-      alert("Impossible de copier le lien.");
-    }
-  }
-
-  function getFilteredBuilds() {
-    const search = searchInput.value.trim().toLowerCase();
-    const classFilter = filterClassSelect.value;
-    const subclassFilter = filterSubclassSelect.value;
-
-    return allBuilds.filter(build => {
-      const searchOk =
-        (build.name || "").toLowerCase().includes(search) ||
-        (build.class_name || "").toLowerCase().includes(search) ||
-        (build.subclass_name || "").toLowerCase().includes(search);
-
-      const classOk = classFilter === "all" || build.class_name === classFilter;
-      const subclassOk = subclassFilter === "all" || build.subclass_name === subclassFilter;
-
-      return searchOk && classOk && subclassOk;
-    });
-  }
-
-  function renderStats(filteredBuilds) {
-    statTotal.textContent = allBuilds.length;
-    statFiltered.textContent = filteredBuilds.length;
-    statClasses.textContent = new Set(allBuilds.map(b => b.class_name)).size;
-    statEditors.textContent = new Set(allBuilds.map(b => b.owner_id).filter(Boolean)).size;
-  }
-
-  function renderClassSummary() {
-    classSummary.innerHTML = "";
-    Object.keys(CLASS_DATA).forEach(className => {
-      const total = allBuilds.filter(b => b.class_name === className).length;
-      const div = document.createElement("div");
-      div.className = "class-row";
-      div.innerHTML = `<strong>${escapeHtml(className)}</strong><span>${total} build(s)</span>`;
-      classSummary.appendChild(div);
-    });
-  }
-
-  function renderToolbar(filteredBuilds) {
-    toolbarText.textContent = filteredBuilds.length
-      ? `${filteredBuilds.length} build(s) affiché(s).`
-      : "Aucun build ne correspond aux filtres actuels.";
-
-    activePills.innerHTML = "";
-    const pills = [];
-    if (searchInput.value.trim()) pills.push(`Recherche : ${searchInput.value.trim()}`);
-    if (filterClassSelect.value !== "all") pills.push(`Classe : ${filterClassSelect.value}`);
-    if (filterSubclassSelect.value !== "all") pills.push(`Sous-classe : ${filterSubclassSelect.value}`);
-    if (!pills.length) pills.push("Aucun filtre actif");
-
-    pills.forEach(text => {
-      const div = document.createElement("div");
-      div.className = "pill";
-      div.textContent = text;
-      activePills.appendChild(div);
-    });
-  }
-
-  function openPreview(build) {
-    modalTitle.textContent = `${build.name} — ${build.class_name} / ${build.subclass_name}`;
-    modalOpenLink.href = build.link;
-    fallbackLink.href = build.link;
-    previewFrame.src = build.link;
-    previewFallback.classList.remove("show");
-    previewModal.classList.add("open");
-
-    clearTimeout(openPreview._timer);
-    openPreview._timer = setTimeout(() => {
-      previewFallback.classList.add("show");
-    }, 3000);
-  }
-
-  function closePreview() {
-    previewModal.classList.remove("open");
-    previewFrame.src = "about:blank";
-    previewFallback.classList.remove("show");
-    clearTimeout(openPreview._timer);
-  }
-
-  function reloadPreview() {
-    const link = modalOpenLink.href;
-    if (!link) return;
-
-    previewFallback.classList.remove("show");
-    previewFrame.src = "about:blank";
-
-    setTimeout(() => {
-      previewFrame.src = link;
-      openPreview._timer = setTimeout(() => {
-        previewFallback.classList.add("show");
-      }, 3000);
-    }, 80);
-  }
-
-  function renderBuilds(filteredBuilds) {
-    buildList.innerHTML = "";
-
-    if (!filteredBuilds.length) {
-      const empty = document.createElement("div");
-      empty.className = "empty panel";
-      empty.innerHTML = `
-        <h3>Aucun build trouvé</h3>
-        <p>Ajoute un build ou modifie les filtres.</p>
-      `;
-      buildList.appendChild(empty);
-      return;
-    }
-
-    filteredBuilds.forEach(build => {
-      const isOwner = currentUser && build.owner_id === currentUser.id;
-
-      const card = document.createElement("article");
-      card.className = "card panel";
-
-      card.innerHTML = `
-        <div>
-          <h3>${escapeHtml(build.name)}</h3>
-          <div class="date">Ajouté le ${escapeHtml(formatDate(build.created_at))}</div>
-        </div>
-
-        <div class="badges">
-          <span class="badge">${escapeHtml(build.class_name)}</span>
-          <span class="badge">${escapeHtml(build.subclass_name)}</span>
-        </div>
-
-        <div class="info-box">
-          <div class="info-row">
-            <div class="info-label">Lien</div>
-            <div><span class="mono" title="${escapeHtml(build.link)}">${escapeHtml(build.link)}</span></div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Hash</div>
-            <div><span class="mono" title="${escapeHtml(getHash(build.link))}">${escapeHtml(getHash(build.link))}</span></div>
-          </div>
-        </div>
-
-        <div class="notes-box">
-          <div class="notes-title">Informations</div>
-          <div class="notes-content ${build.notes ? "" : "notes-empty"}">
-            ${build.notes ? escapeHtml(build.notes) : "Aucune information ajoutée pour ce build."}
-          </div>
-        </div>
-
-        <div class="note">
-          Clique sur <strong>Aperçu</strong> pour voir le build WynnBuilder avec ses stats.
-        </div>
-      `;
-
-      const actions = document.createElement("div");
-      actions.className = "actions";
-
-      const previewBtn = document.createElement("button");
-      previewBtn.type = "button";
-      previewBtn.textContent = "Aperçu";
-      previewBtn.addEventListener("click", () => openPreview(build));
-
-      const openBtn = document.createElement("a");
-      openBtn.className = "button-link btn-secondary";
-      openBtn.href = build.link;
-      openBtn.target = "_blank";
-      openBtn.rel = "noopener noreferrer";
-      openBtn.textContent = "Ouvrir";
-
-      const copyBtn = document.createElement("button");
-      copyBtn.type = "button";
-      copyBtn.className = "btn-secondary";
-      copyBtn.textContent = "Copier";
-      copyBtn.addEventListener("click", () => copyLink(build.link));
-
-      actions.appendChild(previewBtn);
-      actions.appendChild(openBtn);
-      actions.appendChild(copyBtn);
-
-      if (isOwner) {
-        const editBtn = document.createElement("button");
-        editBtn.type = "button";
-        editBtn.className = "btn-secondary";
-        editBtn.textContent = "Modifier";
-        editBtn.addEventListener("click", () => openEditModal(build));
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.type = "button";
-        deleteBtn.className = "btn-danger";
-        deleteBtn.textContent = "Supprimer";
-        deleteBtn.addEventListener("click", () => deleteBuild(build.id));
-
-        actions.appendChild(editBtn);
-        actions.appendChild(deleteBtn);
+    let ok = 0, fail = 0;
+    for (const b of data.builds) {
+      if (!b.link || !isValidLink(b.link)) { fail++; continue; }
+      const payload = {
+        name: b.name || "Build importé",
+        link: b.link,
+        class_name: b.class_name || "Warrior",
+        subclass_name: b.subclass_name || "Fallen",
+        notes: b.notes || "",
+        tags: Array.isArray(b.tags) ? b.tags : [],
+        owner_id: state.currentUser.id
+      };
+      let { error } = await supabase.from("builds").insert(payload);
+      if (error && error.message.toLowerCase().includes("tags")) {
+        delete payload.tags;
+        ({ error } = await supabase.from("builds").insert(payload));
       }
+      if (error) fail++; else ok++;
+    }
+    toast(`Importé : ${ok} OK, ${fail} erreurs.`, ok ? "success" : "error", 4000);
+    await loadBuilds();
+  } catch (e) {
+    toast("Erreur import : " + e.message, "error");
+  }
+}
 
-      card.appendChild(actions);
-      buildList.appendChild(card);
-    });
+// =============================================================================
+// MODALS
+// =============================================================================
+function openModal(modal) {
+  modal.classList.add("open");
+  // Focus first input
+  const first = modal.querySelector("input, select, textarea, button");
+  if (first) first.focus();
+}
+
+function closeModal(modal) {
+  modal.classList.remove("open");
+  if (modal === ui.previewModal) {
+    ui.previewFrame.src = "about:blank";
+    ui.previewEmbedBlock.style.display = "none";
+  }
+  if (modal === ui.editModal) state.editingBuildId = null;
+}
+
+function showStatus(target, text, type = "") {
+  target.textContent = text;
+  target.className = "status " + type;
+}
+
+// =============================================================================
+// EDIT
+// =============================================================================
+function openEditModal(build) {
+  state.editingBuildId = build.id;
+  ui.editName.value = build.name || "";
+  ui.editLink.value = build.link || "";
+  ui.editClass.value = build.class_name || "Warrior";
+  updateSubclassOptions(ui.editClass, ui.editSubclass);
+  ui.editSubclass.value = build.subclass_name || "";
+  ui.editTags.value = tagsToString(build.tags);
+  ui.editNotes.value = build.notes || "";
+  ui.editStatus.textContent = "";
+  openModal(ui.editModal);
+}
+
+// =============================================================================
+// PREVIEW (custom rendering, no iframe)
+// =============================================================================
+function openPreview(build) {
+  ui.previewTitle.textContent = build.name;
+  ui.previewSubtitle.textContent = `${build.class_name} / ${build.subclass_name} • ${formatDate(build.created_at)}`;
+
+  const hash = getHash(build.link);
+  ui.previewHash.textContent = hash || "(pas de hash)";
+
+  // Meta cards
+  const tags = (build.tags && build.tags.length)
+    ? build.tags.map(t => escapeHtml(t)).join(", ")
+    : "—";
+
+  ui.previewMeta.innerHTML = `
+    <div class="meta-item">
+      <div class="meta-label">Type</div>
+      <div class="meta-value">${escapeHtml(getBuilderType(build.link))}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Classe</div>
+      <div class="meta-value">${escapeHtml(build.class_name)}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Sous-classe</div>
+      <div class="meta-value">${escapeHtml(build.subclass_name)}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Tags</div>
+      <div class="meta-value" style="font-size:13px;">${tags}</div>
+    </div>
+  `;
+
+  if (build.notes && build.notes.trim()) {
+    ui.previewNotesBlock.style.display = "";
+    ui.previewNotes.textContent = build.notes;
+  } else {
+    ui.previewNotesBlock.style.display = "none";
   }
 
-  function render() {
-    const filteredBuilds = getFilteredBuilds();
-    renderStats(filteredBuilds);
-    renderClassSummary();
-    renderToolbar(filteredBuilds);
-    renderBuilds(filteredBuilds);
-  }
+  ui.previewOpenBtn.href = build.link;
 
-  function bindEvents() {
-    buildClassSelect.addEventListener("change", updateBuildSubclasses);
-    editClass.addEventListener("change", updateEditSubclasses);
+  // Reset embed
+  ui.previewEmbedBlock.style.display = "none";
+  ui.previewFrame.src = "about:blank";
+  ui.previewTryEmbedBtn.dataset.link = build.link;
 
-    filterClassSelect.addEventListener("change", () => {
-      updateFilterSubclasses();
-      render();
-    });
+  // Stash for "copy hash"
+  ui.copyHashBtn.dataset.hash = hash || "";
 
-    filterSubclassSelect.addEventListener("change", render);
-    searchInput.addEventListener("input", render);
+  openModal(ui.previewModal);
+}
 
-    addBuildBtn.addEventListener("click", addBuild);
-    loginBtn.addEventListener("click", openLoginModal);
-    logoutBtn.addEventListener("click", logout);
-    submitLoginBtn.addEventListener("click", login);
-    closeLoginModalBtn.addEventListener("click", closeLoginModal);
-
-    saveEditBtn.addEventListener("click", saveEdit);
-    closeEditModalBtn.addEventListener("click", closeEditModal);
-
-    scrollToAddBtn.addEventListener("click", () => {
-      addSection.scrollIntoView({ behavior: "smooth", block: "start" });
-      buildLinkInput.focus();
-    });
-
-    closePreviewBtn.addEventListener("click", closePreview);
-    reloadPreviewBtn.addEventListener("click", reloadPreview);
-
-    [loginModal, editModal, previewModal].forEach(modal => {
-      modal.addEventListener("click", (e) => {
-        if (e.target === modal) modal.classList.remove("open");
-      });
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        closePreview();
-        closeLoginModal();
-        closeEditModal();
-      }
-    });
-
-    previewFrame.addEventListener("load", () => {
-      previewFallback.classList.remove("show");
-      clearTimeout(openPreview._timer);
-    });
-
-supabase.auth.onAuthStateChange((_event, session) => {
-  console.log("onAuthStateChange", _event, session);
-
-  currentSession = session ?? null;
-  currentUser = session?.user ?? null;
-  updateAuthUI();
-
+function tryEmbed() {
+  const link = ui.previewTryEmbedBtn.dataset.link;
+  if (!link) return;
+  ui.previewEmbedBlock.style.display = "";
+  ui.previewFrame.src = link;
+  ui.previewTryEmbedBtn.disabled = true;
+  ui.previewTryEmbedBtn.textContent = "Chargement…";
   setTimeout(() => {
-    loadBuilds();
-  }, 0);
-});
+    ui.previewTryEmbedBtn.disabled = false;
+    ui.previewTryEmbedBtn.textContent = "Recharger l'intégration";
+  }, 2000);
+}
+
+// =============================================================================
+// SELECT POPULATION
+// =============================================================================
+function updateSubclassOptions(classSelect, subclassSelect) {
+  const className = classSelect.value;
+  subclassSelect.innerHTML = "";
+  (CLASS_DATA[className] || []).forEach(sub => {
+    const o = document.createElement("option");
+    o.value = sub; o.textContent = sub;
+    subclassSelect.appendChild(o);
+  });
+}
+
+function populateSelects() {
+  // Build & Edit class selects
+  [ui.buildClass, ui.editClass].forEach(sel => {
+    sel.innerHTML = "";
+    Object.keys(CLASS_DATA).forEach(c => {
+      const o = document.createElement("option");
+      o.value = c; o.textContent = c;
+      sel.appendChild(o);
+    });
+  });
+
+  // Filter class
+  ui.filterClass.innerHTML = '<option value="all">Toutes les classes</option>';
+  Object.keys(CLASS_DATA).forEach(c => {
+    const o = document.createElement("option");
+    o.value = c; o.textContent = c;
+    ui.filterClass.appendChild(o);
+  });
+
+  updateSubclassOptions(ui.buildClass, ui.buildSubclass);
+  updateSubclassOptions(ui.editClass, ui.editSubclass);
+  updateFilterSubclasses();
+}
+
+function updateFilterSubclasses() {
+  const className = ui.filterClass.value;
+  ui.filterSubclass.innerHTML = '<option value="all">Toutes les sous-classes</option>';
+  if (className === "all") return;
+  (CLASS_DATA[className] || []).forEach(sub => {
+    const o = document.createElement("option");
+    o.value = sub; o.textContent = sub;
+    ui.filterSubclass.appendChild(o);
+  });
+}
+
+// =============================================================================
+// FILTERING & SORTING
+// =============================================================================
+function getFilteredBuilds() {
+  const search = ui.searchInput.value.trim().toLowerCase();
+  const classF = ui.filterClass.value;
+  const subF = ui.filterSubclass.value;
+  const tagF = ui.filterTag.value.trim().toLowerCase();
+
+  let result = state.allBuilds.filter(b => {
+    const haystack = `${b.name||""} ${b.class_name||""} ${b.subclass_name||""} ${b.notes||""} ${(b.tags||[]).join(" ")}`.toLowerCase();
+    if (search && !haystack.includes(search)) return false;
+    if (classF !== "all" && b.class_name !== classF) return false;
+    if (subF !== "all" && b.subclass_name !== subF) return false;
+    if (tagF && !(b.tags||[]).some(t => t.toLowerCase().includes(tagF))) return false;
+    return true;
+  });
+
+  const sortMode = ui.sortSelect.value;
+  result.sort((a, b) => {
+    switch (sortMode) {
+      case "date_asc":  return new Date(a.created_at) - new Date(b.created_at);
+      case "date_desc": return new Date(b.created_at) - new Date(a.created_at);
+      case "name_asc":  return (a.name||"").localeCompare(b.name||"", "fr");
+      case "name_desc": return (b.name||"").localeCompare(a.name||"", "fr");
+      case "class":     return (a.class_name||"").localeCompare(b.class_name||"", "fr");
+      default: return 0;
+    }
+  });
+
+  return result;
+}
+
+// =============================================================================
+// RENDERING
+// =============================================================================
+function renderStats(filtered) {
+  ui.statTotal.textContent = state.allBuilds.length;
+  ui.statFiltered.textContent = filtered.length;
+  ui.statClasses.textContent = new Set(state.allBuilds.map(b => b.class_name)).size;
+  ui.statEditors.textContent = new Set(state.allBuilds.map(b => b.owner_id).filter(Boolean)).size;
+}
+
+function renderClassSummary() {
+  ui.classSummary.innerHTML = "";
+  Object.keys(CLASS_DATA).forEach(name => {
+    const total = state.allBuilds.filter(b => b.class_name === name).length;
+    const div = document.createElement("div");
+    div.className = "class-row";
+    div.innerHTML = `<strong>${escapeHtml(name)}</strong><span>${total}</span>`;
+    ui.classSummary.appendChild(div);
+  });
+}
+
+function renderToolbar(filtered) {
+  ui.toolbarText.textContent = filtered.length
+    ? `${filtered.length} build(s) sur ${state.allBuilds.length}`
+    : "Aucun build ne correspond.";
+
+  const pills = [];
+  if (ui.searchInput.value.trim())  pills.push(`🔍 ${ui.searchInput.value.trim()}`);
+  if (ui.filterClass.value !== "all")    pills.push(`🛡️ ${ui.filterClass.value}`);
+  if (ui.filterSubclass.value !== "all") pills.push(`⚔️ ${ui.filterSubclass.value}`);
+  if (ui.filterTag.value.trim())  pills.push(`🏷️ ${ui.filterTag.value.trim()}`);
+
+  ui.activePills.innerHTML = "";
+  if (pills.length) {
+    pills.forEach(t => {
+      const d = document.createElement("div");
+      d.className = "pill active";
+      d.textContent = t;
+      ui.activePills.appendChild(d);
+    });
+  }
+}
+
+function renderBuildCard(build) {
+  const isOwner = state.currentUser && build.owner_id === state.currentUser.id;
+  const card = document.createElement("article");
+  card.className = "card panel";
+
+  const tagsHtml = (build.tags && build.tags.length)
+    ? `<div class="badges" style="margin-top:4px;">${build.tags
+         .map(t => `<span class="badge">🏷️ ${escapeHtml(t)}</span>`).join("")}</div>`
+    : "";
+
+  card.innerHTML = `
+    <div>
+      <h3>${escapeHtml(build.name)}</h3>
+      <div class="date">Ajouté le ${escapeHtml(formatDate(build.created_at))}</div>
+    </div>
+    <div class="badges">
+      <span class="badge class-${classOfTag(build.class_name)}">${escapeHtml(build.class_name)}</span>
+      <span class="badge">${escapeHtml(build.subclass_name)}</span>
+      <span class="badge">${escapeHtml(getBuilderType(build.link))}</span>
+    </div>
+    ${tagsHtml}
+    <div class="info-box">
+      <div class="info-row">
+        <div class="info-label">Hash</div>
+        <div><span class="mono" title="${escapeHtml(getHash(build.link))}">${escapeHtml(getHash(build.link) || "—")}</span></div>
+      </div>
+    </div>
+    <div class="notes-box">
+      <div class="notes-title">Informations</div>
+      <div class="notes-content ${build.notes ? "" : "empty"}">${
+        build.notes ? escapeHtml(build.notes) : "Aucune information ajoutée."
+      }</div>
+    </div>
+  `;
+
+  // Action buttons (built programmatically to avoid XSS via inline handlers)
+  const actions = document.createElement("div");
+  actions.className = "actions";
+
+  const previewBtn = document.createElement("button");
+  previewBtn.type = "button";
+  previewBtn.textContent = "Aperçu";
+  previewBtn.addEventListener("click", () => openPreview(build));
+  actions.appendChild(previewBtn);
+
+  const openBtn = document.createElement("a");
+  openBtn.className = "button-link btn-secondary";
+  openBtn.href = build.link;
+  openBtn.target = "_blank";
+  openBtn.rel = "noopener noreferrer";
+  openBtn.textContent = "Ouvrir";
+  actions.appendChild(openBtn);
+
+  const copyBtn = document.createElement("button");
+  copyBtn.type = "button";
+  copyBtn.className = "btn-secondary";
+  copyBtn.textContent = "Copier";
+  copyBtn.addEventListener("click", () => copyText(build.link, "Lien copié"));
+  actions.appendChild(copyBtn);
+
+  if (isOwner) {
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "btn-secondary";
+    editBtn.textContent = "Modifier";
+    editBtn.addEventListener("click", () => openEditModal(build));
+    actions.appendChild(editBtn);
+
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "btn-danger";
+    delBtn.textContent = "Supprimer";
+    delBtn.addEventListener("click", () => deleteBuild(build.id, build.name));
+    actions.appendChild(delBtn);
   }
 
-  async function init() {
-    populateClassOptions();
-    bindEvents();
-    await fetchCurrentUser();
-    await loadBuilds();
-  }
+  card.appendChild(actions);
+  return card;
+}
 
-  init();
+function renderBuilds(filtered) {
+  ui.buildList.innerHTML = "";
+  if (!filtered.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty panel";
+    empty.innerHTML = `
+      <h3>Aucun build trouvé</h3>
+      <p>Ajoute un build${state.currentUser ? "" : " (connecte-toi)"} ou modifie les filtres.</p>
+    `;
+    ui.buildList.appendChild(empty);
+    return;
+  }
+  // DocumentFragment = 1 reflow au lieu de N
+  const frag = document.createDocumentFragment();
+  filtered.forEach(b => frag.appendChild(renderBuildCard(b)));
+  ui.buildList.appendChild(frag);
+}
+
+function render() {
+  const filtered = getFilteredBuilds();
+  renderStats(filtered);
+  renderClassSummary();
+  renderToolbar(filtered);
+  renderBuilds(filtered);
+}
+
+const debouncedRender = (function() {
+  let t = null;
+  return () => {
+    if (t) clearTimeout(t);
+    t = setTimeout(render, 150);
+  };
+})();
+
+// =============================================================================
+// EVENTS
+// =============================================================================
+function bindEvents() {
+  // Theme
+  ui.themeToggle.addEventListener("click", toggleTheme);
+
+  // Auth
+  ui.loginBtn.addEventListener("click", () => openModal(ui.loginModal));
+  ui.logoutBtn.addEventListener("click", logout);
+  ui.submitLoginBtn.addEventListener("click", login);
+  ui.closeLoginModalBtn.addEventListener("click", () => closeModal(ui.loginModal));
+  ui.loginPassword.addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+
+  // Form
+  ui.buildClass.addEventListener("change", () => updateSubclassOptions(ui.buildClass, ui.buildSubclass));
+  ui.editClass.addEventListener("change",  () => updateSubclassOptions(ui.editClass, ui.editSubclass));
+  ui.addBuildBtn.addEventListener("click", addBuild);
+  ui.saveEditBtn.addEventListener("click", saveEdit);
+  ui.closeEditModalBtn.addEventListener("click", () => closeModal(ui.editModal));
+
+  // Filters (with debounce on text inputs)
+  ui.filterClass.addEventListener("change", () => { updateFilterSubclasses(); render(); });
+  ui.filterSubclass.addEventListener("change", render);
+  ui.searchInput.addEventListener("input", debouncedRender);
+  ui.filterTag.addEventListener("input", debouncedRender);
+  ui.sortSelect.addEventListener("change", render);
+
+  // Scroll to add
+  ui.scrollToAddBtn.addEventListener("click", () => {
+    ui.addSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    ui.buildLink.focus();
+  });
+
+  // Preview modal
+  ui.closePreviewBtn.addEventListener("click", () => closeModal(ui.previewModal));
+  ui.copyHashBtn.addEventListener("click", () => {
+    const h = ui.copyHashBtn.dataset.hash || "";
+    if (h) copyText(h, "Hash copié");
+    else toast("Pas de hash dans ce build", "info");
+  });
+  ui.previewTryEmbedBtn.addEventListener("click", tryEmbed);
+
+  // Modal close on backdrop click
+  [ui.loginModal, ui.editModal, ui.previewModal].forEach(m => {
+    m.addEventListener("click", e => { if (e.target === m) closeModal(m); });
+  });
+
+  // Export / Import
+  ui.exportBtn.addEventListener("click", exportBuilds);
+  ui.importBtn.addEventListener("click", () => ui.importFile.click());
+  ui.importFile.addEventListener("change", e => {
+    const f = e.target.files?.[0];
+    if (f) importBuilds(f);
+    e.target.value = "";
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener("keydown", e => {
+    // Ctrl+K = search
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      ui.searchInput.focus();
+      ui.searchInput.select();
+      return;
+    }
+    // Esc = close any open modal
+    if (e.key === "Escape") {
+      [ui.loginModal, ui.editModal, ui.previewModal].forEach(m => {
+        if (m.classList.contains("open")) closeModal(m);
+      });
+      return;
+    }
+    // N = new build (only if logged in & not in input)
+    if (e.key.toLowerCase() === "n" && state.currentUser
+        && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      ui.scrollToAddBtn.click();
+    }
+  });
+
+  // Auth state changes
+  supabase.auth.onAuthStateChange((_evt, session) => {
+    state.currentSession = session ?? null;
+    state.currentUser = session?.user ?? null;
+    updateAuthUI();
+    setTimeout(loadBuilds, 0);
+  });
+}
+
+// =============================================================================
+// INIT
+// =============================================================================
+async function init() {
+  loadTheme();
+  populateSelects();
+  bindEvents();
+  await fetchCurrentUser();
+  await loadBuilds();
+}
+
+init();
 </script>
-  
 </body>
 </html>
