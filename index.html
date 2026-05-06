@@ -628,6 +628,72 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
 
 /* Class summary */
 .class-list { display: flex; flex-direction: column; gap: 8px; }
+
+/* Donut chart */
+.class-donut {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 0 12px;
+  position: relative;
+}
+.class-donut svg {
+  width: 140px;
+  height: 140px;
+  overflow: visible;
+}
+.class-donut .donut-segment {
+  transition: transform .25s cubic-bezier(.4,1.4,.6,1), filter .25s, opacity .25s;
+  transform-origin: 60px 60px;
+  cursor: pointer;
+}
+.class-donut .donut-segment:hover {
+  transform: scale(1.06);
+  filter: brightness(1.18) drop-shadow(0 0 8px currentColor);
+}
+.class-donut .donut-segment.dimmed {
+  opacity: .25;
+}
+.class-donut .donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+}
+.class-donut .donut-center .donut-num {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.class-donut .donut-center .donut-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 4px;
+}
+.class-donut.empty {
+  font-size: 12px;
+  color: var(--muted-2);
+  font-style: italic;
+  padding: 24px 0;
+}
+
+/* Stagger fade-in pour les cartes */
+@keyframes cardFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card.animated {
+  animation: cardFadeIn .4s cubic-bezier(.2,.8,.3,1) backwards;
+}
+
 .class-row {
   display: flex;
   justify-content: space-between;
@@ -1076,6 +1142,7 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
       <!-- Repartition -->
       <section class="panel section">
         <h2>Répartition</h2>
+        <div id="classDonut" class="class-donut"></div>
         <div id="classSummary" class="class-list"></div>
       </section>
 
@@ -1269,6 +1336,7 @@ const ui = {
   activeTagCount: $("activeTagCount"),
 
   buildList: $("buildList"), classSummary: $("classSummary"),
+  classDonut: $("classDonut"),
   toolbarText: $("toolbarText"), activePills: $("activePills"),
 
   statTotal: $("statTotal"), statFiltered: $("statFiltered"),
@@ -1878,6 +1946,101 @@ function renderStats(filtered) {
   ui.statEditors.textContent = new Set(state.allBuilds.map(b => b.owner_id).filter(Boolean)).size;
 }
 
+/**
+ * Trace un donut chart SVG montrant la répartition par classe.
+ * - Hover sur un segment : scale + glow, autres segments dimmed
+ * - Clic sur un segment : activer le filtre par cette classe
+ * - Au centre : nombre total + label
+ */
+function renderClassDonut() {
+  const data = Object.keys(CLASS_DATA).map(name => ({
+    name,
+    count: state.allBuilds.filter(b => b.class_name === name).length,
+    color: `var(--class-${classOfTag(name)})`,
+  })).filter(d => d.count > 0);
+
+  const total = data.reduce((s, d) => s + d.count, 0);
+
+  if (total === 0) {
+    ui.classDonut.className = "class-donut empty";
+    ui.classDonut.textContent = "Aucun build pour le moment.";
+    return;
+  }
+  ui.classDonut.className = "class-donut";
+
+  const cx = 60, cy = 60, r = 50, ir = 32;
+  let start = -Math.PI / 2;  // commence en haut
+
+  // SVG paths
+  const segments = data.map((d, i) => {
+    const angle = (d.count / total) * Math.PI * 2;
+    const end = start + angle;
+
+    const x1 = cx + r  * Math.cos(start);
+    const y1 = cy + r  * Math.sin(start);
+    const x2 = cx + r  * Math.cos(end);
+    const y2 = cy + r  * Math.sin(end);
+    const x3 = cx + ir * Math.cos(end);
+    const y3 = cy + ir * Math.sin(end);
+    const x4 = cx + ir * Math.cos(start);
+    const y4 = cy + ir * Math.sin(start);
+    const large = angle > Math.PI ? 1 : 0;
+
+    const path = `M ${x1.toFixed(2)},${y1.toFixed(2)} ` +
+                 `A ${r},${r} 0 ${large},1 ${x2.toFixed(2)},${y2.toFixed(2)} ` +
+                 `L ${x3.toFixed(2)},${y3.toFixed(2)} ` +
+                 `A ${ir},${ir} 0 ${large},0 ${x4.toFixed(2)},${y4.toFixed(2)} Z`;
+
+    start = end;
+    const pct = Math.round((d.count / total) * 100);
+    return { name: d.name, count: d.count, color: d.color, path, pct };
+  });
+
+  // Build SVG with class annotations for color via CSS variables
+  const svgPaths = segments.map(s => `
+    <path class="donut-segment"
+          data-class="${escapeHtml(s.name)}"
+          d="${s.path}"
+          fill="${s.color}"
+          style="color: ${s.color};"
+          aria-label="${escapeHtml(s.name)} : ${s.count} builds (${s.pct}%)">
+      <title>${escapeHtml(s.name)} — ${s.count} builds (${s.pct}%)</title>
+    </path>
+  `).join("");
+
+  ui.classDonut.innerHTML = `
+    <svg viewBox="0 0 120 120" role="img" aria-label="Répartition par classe">
+      ${svgPaths}
+    </svg>
+    <div class="donut-center">
+      <div class="donut-num">${total}</div>
+      <div class="donut-label">build${total > 1 ? "s" : ""}</div>
+    </div>
+  `;
+
+  // Interactions : hover dim others, click toggles class filter
+  const segs = ui.classDonut.querySelectorAll(".donut-segment");
+  segs.forEach(seg => {
+    seg.addEventListener("mouseenter", () => {
+      segs.forEach(s => s.classList.toggle("dimmed", s !== seg));
+    });
+    seg.addEventListener("mouseleave", () => {
+      segs.forEach(s => s.classList.remove("dimmed"));
+    });
+    seg.addEventListener("click", () => {
+      const cls = seg.dataset.class;
+      // Toggle : si déjà actif, on désactive
+      if (ui.filterClass.value === cls) {
+        ui.filterClass.value = "all";
+      } else {
+        ui.filterClass.value = cls;
+      }
+      updateFilterSubclasses();
+      render();
+    });
+  });
+}
+
 function renderClassSummary() {
   ui.classSummary.innerHTML = "";
   Object.keys(CLASS_DATA).forEach(name => {
@@ -2166,13 +2329,27 @@ function renderBuilds(filtered) {
   }
   // DocumentFragment = 1 reflow au lieu de N
   const frag = document.createDocumentFragment();
-  filtered.forEach(b => frag.appendChild(renderBuildCard(b)));
+  // Stagger : on n'anime que les ~12 premières cartes (au-delà, la cascade est trop longue)
+  // et seulement si on n'est pas en mode "reduced motion"
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const staggerLimit = reducedMotion ? 0 : 12;
+
+  filtered.forEach((b, i) => {
+    const card = renderBuildCard(b);
+    if (i < staggerLimit) {
+      card.classList.add("animated");
+      // Délai entre 0 et 240ms (40ms × index, plafonné à 480ms)
+      card.style.animationDelay = `${Math.min(i * 40, 480)}ms`;
+    }
+    frag.appendChild(card);
+  });
   ui.buildList.appendChild(frag);
 }
 
 function render() {
   const filtered = getFilteredBuilds();
   renderStats(filtered);
+  renderClassDonut();
   renderClassSummary();
   renderTagChips();
   renderToolbar(filtered);
