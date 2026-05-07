@@ -8,7 +8,246 @@
 
 <style>
 /* ==========================================================================
-   Tokens — variables theme
+   View tabs (Builds | Guides)
+   ========================================================================== */
+.view-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 22px;
+  background: var(--panel);
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  width: fit-content;
+}
+.view-tab {
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background .15s, color .15s, transform .12s;
+}
+.view-tab:hover {
+  color: var(--text);
+  transform: none;
+  box-shadow: none;
+}
+.view-tab.active {
+  background: linear-gradient(135deg, var(--blue), var(--blue-2));
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.view-tab .tab-count {
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255,255,255,.18);
+  color: inherit;
+  padding: 2px 8px;
+  border-radius: 999px;
+  min-width: 22px;
+  text-align: center;
+}
+.view-tab:not(.active) .tab-count {
+  background: var(--panel-2);
+  color: var(--muted);
+}
+
+.view-section { display: block; }
+.view-section.hidden { display: none; }
+
+/* Carte guide : couleurs differentes pour bien les distinguer des builds */
+.card.is-guide {
+  border-left: 3px solid var(--success);
+}
+.card.is-guide:hover {
+  box-shadow: 0 22px 50px rgba(0,0,0,.35), 0 0 0 1px var(--success);
+}
+
+/* Hover effect par categorie pour les cartes de guide */
+.card.is-guide.cat-combat:hover  { box-shadow: 0 22px 50px rgba(0,0,0,.35), 0 0 0 1px #f87171; }
+.card.is-guide.cat-economy:hover { box-shadow: 0 22px 50px rgba(0,0,0,.35), 0 0 0 1px #fbbf24; }
+.card.is-guide.cat-quest:hover   { box-shadow: 0 22px 50px rgba(0,0,0,.35), 0 0 0 1px #60a5fa; }
+.card.is-guide.cat-prof:hover    { box-shadow: 0 22px 50px rgba(0,0,0,.35), 0 0 0 1px #34d399; }
+.card.is-guide.cat-boss:hover    { box-shadow: 0 22px 50px rgba(0,0,0,.35), 0 0 0 1px #c084fc; }
+.card.is-guide.cat-dungeon:hover { box-shadow: 0 22px 50px rgba(0,0,0,.35), 0 0 0 1px #fb923c; }
+
+.card.is-guide.cat-combat  { border-left-color: #f87171; }
+.card.is-guide.cat-economy { border-left-color: #fbbf24; }
+.card.is-guide.cat-quest   { border-left-color: #60a5fa; }
+.card.is-guide.cat-prof    { border-left-color: #34d399; }
+.card.is-guide.cat-boss    { border-left-color: #c084fc; }
+.card.is-guide.cat-dungeon { border-left-color: #fb923c; }
+
+/* Categorie de guide : couleurs par theme */
+.cat-combat   { color: #f87171; border-color: rgba(248,113,113,.4); background: rgba(248,113,113,.08); }
+.cat-economy  { color: #fbbf24; border-color: rgba(251,191,36,.4); background: rgba(251,191,36,.08); }
+.cat-quest    { color: #60a5fa; border-color: rgba(96,165,250,.4); background: rgba(96,165,250,.08); }
+.cat-prof     { color: #34d399; border-color: rgba(52,211,153,.4); background: rgba(52,211,153,.08); }
+.cat-boss     { color: #c084fc; border-color: rgba(192,132,252,.4); background: rgba(192,132,252,.08); }
+.cat-dungeon  { color: #fb923c; border-color: rgba(251,146,60,.4); background: rgba(251,146,60,.08); }
+.cat-other    { color: var(--muted); }
+
+/* Domain badge avec favicon */
+.domain-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  padding: 4px 9px;
+  border-radius: 999px;
+  text-decoration: none;
+}
+.domain-badge .domain-favicon {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* Header guide carte avec catégorie en grand */
+.guide-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+.guide-cat-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1.5px solid currentColor;
+  background: rgba(255,255,255,0.03);
+}
+.guide-cat-icon svg { width: 22px; height: 22px; }
+
+/* Description du guide */
+.guide-desc {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* Filtre catégories : chips visibles directement */
+.category-chips-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.category-chips-section h2 {
+  margin: 0;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 700;
+}
+.category-chips {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.cat-chip {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: all .15s ease-out;
+  user-select: none;
+}
+.cat-chip:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+.cat-chip svg { width: 14px; height: 14px; }
+.cat-chip .cat-count {
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--bg-1);
+  padding: 1px 6px;
+  border-radius: 999px;
+  min-width: 16px;
+  text-align: center;
+}
+/* Categories actives : couleur du theme */
+.cat-chip.active.cat-combat   { background: linear-gradient(135deg, #f87171, #dc2626); color: #fff; border-color: #dc2626; box-shadow: 0 2px 8px rgba(248,113,113,.4); }
+.cat-chip.active.cat-economy  { background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; border-color: #d97706; box-shadow: 0 2px 8px rgba(251,191,36,.4); }
+.cat-chip.active.cat-quest    { background: linear-gradient(135deg, #60a5fa, #2563eb); color: #fff; border-color: #2563eb; box-shadow: 0 2px 8px rgba(96,165,250,.4); }
+.cat-chip.active.cat-prof     { background: linear-gradient(135deg, #34d399, #059669); color: #fff; border-color: #059669; box-shadow: 0 2px 8px rgba(52,211,153,.4); }
+.cat-chip.active.cat-boss     { background: linear-gradient(135deg, #c084fc, #7c3aed); color: #fff; border-color: #7c3aed; box-shadow: 0 2px 8px rgba(192,132,252,.4); }
+.cat-chip.active.cat-dungeon  { background: linear-gradient(135deg, #fb923c, #ea580c); color: #fff; border-color: #ea580c; box-shadow: 0 2px 8px rgba(251,146,60,.4); }
+.cat-chip.active.cat-other    { background: linear-gradient(135deg, var(--blue), var(--blue-2)); color: #fff; border-color: var(--blue-2); }
+.cat-chip.active .cat-count   { background: rgba(255,255,255,.22); color: #fff; }
+.cat-chip.dim                 { opacity: 0.4; }
+
+/* Categorie row dans la sidebar : cliquable comme les classes */
+.class-row.cat-combat   { border-left-color: #f87171; }
+.class-row.cat-economy  { border-left-color: #fbbf24; }
+.class-row.cat-quest    { border-left-color: #60a5fa; }
+.class-row.cat-prof     { border-left-color: #34d399; }
+.class-row.cat-boss     { border-left-color: #c084fc; }
+.class-row.cat-dungeon  { border-left-color: #fb923c; }
+.class-row.cat-other    { border-left-color: var(--muted); }
+.class-row[data-clickable="true"] {
+  cursor: pointer;
+}
+.class-row[data-clickable="true"].active {
+  background: var(--blue-glow);
+  border-color: var(--blue);
+}
+
+/* Recherche avec icone */
+.input-with-icon {
+  position: relative;
+}
+.input-with-icon svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.input-with-icon input {
+  padding-left: 38px;
+}
+
+/* Animation d'apparition pour la section */
+@keyframes viewSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.view-section:not(.hidden) {
+  animation: viewSlideIn .35s ease-out;
+}
+
+/* ==========================================================================
    ========================================================================== */
 :root[data-theme="dark"] {
   --bg-1: #0a1220;
@@ -263,6 +502,91 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
   font-size: 12px;
   color: var(--muted-2);
 }
+
+/* Stat card cliquable pour filtre favoris */
+.stat-favorites {
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s, border-color .15s;
+  user-select: none;
+}
+.stat-favorites:hover {
+  transform: translateY(-2px);
+  border-color: var(--warning);
+  box-shadow: 0 22px 50px rgba(0,0,0,.2), 0 0 0 1px var(--warning);
+}
+.stat-favorites:focus-visible {
+  outline: 2px solid var(--warning);
+  outline-offset: 2px;
+}
+.stat-favorites.active {
+  border-color: var(--warning);
+  background: linear-gradient(135deg, rgba(245, 158, 11, .15), var(--panel));
+  box-shadow: 0 0 0 1px var(--warning);
+}
+.stat-favorites.active .stat-value { color: var(--warning); }
+.stat-favorites .stat-label { display: inline-flex; align-items: center; gap: 5px; }
+
+/* Bouton étoile sur les cartes */
+.fav-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all .18s ease-out;
+  z-index: 2;
+}
+.fav-btn svg { width: 16px; height: 16px; }
+.fav-btn:hover {
+  border-color: var(--warning);
+  color: var(--warning);
+  transform: scale(1.08);
+}
+.fav-btn.is-fav {
+  background: linear-gradient(135deg, var(--warning), #f97316);
+  border-color: var(--warning);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, .4);
+}
+.fav-btn.is-fav:hover {
+  transform: scale(1.1) rotate(-8deg);
+}
+
+/* Animation pop quand on favorise */
+@keyframes favPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.4) rotate(-12deg); }
+  70%  { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.fav-btn.popping {
+  animation: favPop .42s ease-out;
+}
+
+/* Petites étoiles qui s'envolent quand on favorise */
+@keyframes favBurst {
+  0%   { opacity: 1; transform: translate(0, 0) scale(0.5) rotate(0deg); }
+  100% { opacity: 0; transform: translate(var(--bx, 30px), var(--by, -30px)) scale(1.2) rotate(180deg); }
+}
+.fav-burst {
+  position: absolute;
+  pointer-events: none;
+  color: var(--warning);
+  animation: favBurst .55s ease-out forwards;
+  z-index: 3;
+}
+
+/* La carte a position relative pour positionner le bouton */
+.card { position: relative; }
 
 .layout {
   display: grid;
@@ -1018,6 +1342,73 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
       <line x1="8" y1="14" x2="16" y2="14" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
       <line x1="8" y1="17" x2="14" y2="17" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
     </symbol>
+
+    <!-- Star icon (favoris) -->
+    <symbol id="icon-star" viewBox="0 0 24 24">
+      <path d="M12 2 L14.6 8.6 L21.5 9.2 L16.2 13.8 L17.9 20.5 L12 17 L6.1 20.5 L7.8 13.8 L2.5 9.2 L9.4 8.6 Z"
+            fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="icon-star-outline" viewBox="0 0 24 24">
+      <path d="M12 2 L14.6 8.6 L21.5 9.2 L16.2 13.8 L17.9 20.5 L12 17 L6.1 20.5 L7.8 13.8 L2.5 9.2 L9.4 8.6 Z"
+            fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    </symbol>
+
+    <!-- Categories Guides : icones SVG inline -->
+    <!-- Combat : épées croisées -->
+    <symbol id="icon-cat-combat" viewBox="0 0 24 24">
+      <path d="M5 3 L11 9 M3 5 L9 11 L4 16 L8 20 L13 15 M19 3 L13 9 M21 5 L15 11 L20 16 L16 20 L11 15"
+            stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <!-- Economie : pieces empilees -->
+    <symbol id="icon-cat-economy" viewBox="0 0 24 24">
+      <ellipse cx="12" cy="7"  rx="7" ry="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M5 7 V11 C 5 12.4 8.1 13.5 12 13.5 S 19 12.4 19 11 V7" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M5 11 V15 C 5 16.4 8.1 17.5 12 17.5 S 19 16.4 19 15 V11" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M5 15 V19 C 5 20.4 8.1 21.5 12 21.5 S 19 20.4 19 19 V15" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    </symbol>
+    <!-- Quete : parchemin -->
+    <symbol id="icon-cat-quest" viewBox="0 0 24 24">
+      <path d="M5 3 H17 A2 2 0 0 1 19 5 V19 A2 2 0 0 0 21 21 H7 A2 2 0 0 1 5 19 Z"
+            stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+      <line x1="9" y1="8"  x2="15" y2="8"  stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      <line x1="9" y1="12" x2="15" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      <line x1="9" y1="16" x2="13" y2="16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    </symbol>
+    <!-- Profession : enclume / marteau -->
+    <symbol id="icon-cat-prof" viewBox="0 0 24 24">
+      <path d="M3 11 H21 V14 H17 V18 H7 V14 H3 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M8 11 V7 L13 5 V11" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+    </symbol>
+    <!-- Boss : crâne -->
+    <symbol id="icon-cat-boss" viewBox="0 0 24 24">
+      <path d="M5 11 C 5 6 8 4 12 4 S 19 6 19 11 V14 L17 16 V19 H15 V17 H13 V19 H11 V17 H9 V19 H7 V16 L5 14 Z"
+            stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+      <circle cx="9.5"  cy="11" r="1.4" fill="currentColor"/>
+      <circle cx="14.5" cy="11" r="1.4" fill="currentColor"/>
+    </symbol>
+    <!-- Donjon : tour -->
+    <symbol id="icon-cat-dungeon" viewBox="0 0 24 24">
+      <path d="M5 3 V6 H7 V3 H10 V6 H14 V3 H17 V6 H19 V3 V8 L17 10 V21 H7 V10 L5 8 Z"
+            stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+      <path d="M11 14 H13 V21" stroke="currentColor" stroke-width="1.6" fill="none"/>
+    </symbol>
+    <!-- Autre : punaise -->
+    <symbol id="icon-cat-other" viewBox="0 0 24 24">
+      <path d="M9 3 H15 V8 L18 11 H6 L9 8 Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+      <line x1="12" y1="11" x2="12" y2="20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- Search icon -->
+    <symbol id="icon-search" viewBox="0 0 24 24">
+      <circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <line x1="15" y1="15" x2="20" y2="20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- Link external icon -->
+    <symbol id="icon-external" viewBox="0 0 24 24">
+      <path d="M14 4 H20 V10 M20 4 L11 13 M9 5 H5 A1 1 0 0 0 4 6 V19 A1 1 0 0 0 5 20 H18 A1 1 0 0 0 19 19 V15"
+            stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
   </defs>
 </svg>
 
@@ -1044,8 +1435,32 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
     </div>
   </header>
 
-  <!-- Stats -->
-  <section class="stats" aria-label="Statistiques">
+  <!-- View tabs : Builds / Guides -->
+  <nav class="view-tabs" role="tablist" aria-label="Navigation des sections">
+    <button id="tabBuilds" type="button" class="view-tab active" role="tab" aria-selected="true" aria-controls="viewBuilds">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 2 L15 8 L12 7 L9 8 Z M12 7 V20 M9 9 H15" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      </svg>
+      <span>Builds</span>
+      <span class="tab-count" id="tabCountBuilds">0</span>
+    </button>
+    <button id="tabGuides" type="button" class="view-tab" role="tab" aria-selected="false" aria-controls="viewGuides">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 4 H18 A2 2 0 0 1 20 6 V20 A2 2 0 0 1 18 22 H4 Z M4 4 A2 2 0 0 0 4 6 V22"
+              stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+        <line x1="8" y1="9"  x2="16" y2="9"  stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <line x1="8" y1="13" x2="16" y2="13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <line x1="8" y1="17" x2="13" y2="17" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <span>Guides</span>
+      <span class="tab-count" id="tabCountGuides">0</span>
+    </button>
+  </nav>
+
+  <!-- =========================================================
+       VUE BUILDS
+       ========================================================= -->
+  <div id="viewBuilds" class="view-section" role="tabpanel" aria-labelledby="tabBuilds">
     <div class="panel stat-card">
       <div class="stat-label">Builds</div>
       <div class="stat-value" id="statTotal">0</div>
@@ -1061,10 +1476,13 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
       <div class="stat-value" id="statClasses">0</div>
       <div class="stat-sub">Différentes</div>
     </div>
-    <div class="panel stat-card">
-      <div class="stat-label">Éditeurs</div>
-      <div class="stat-value" id="statEditors">0</div>
-      <div class="stat-sub">Comptes ayant publié</div>
+    <div class="panel stat-card stat-favorites" id="statFavoritesCard" role="button" tabindex="0" aria-label="Filtrer par favoris">
+      <div class="stat-label">
+        <svg width="12" height="12" viewBox="0 0 24 24" style="vertical-align: -2px; color: var(--warning);"><use href="#icon-star"/></svg>
+        Mes favoris
+      </div>
+      <div class="stat-value" id="statFavorites">0</div>
+      <div class="stat-sub" id="statFavoritesSub">Cliquer pour filtrer</div>
     </div>
   </section>
 
@@ -1174,7 +1592,117 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
     </main>
 
   </div>
-</div>
+  </div><!-- /viewBuilds -->
+
+  <!-- =========================================================
+       VUE GUIDES
+       ========================================================= -->
+  <div id="viewGuides" class="view-section hidden" role="tabpanel" aria-labelledby="tabGuides">
+
+    <!-- Stats Guides -->
+    <section class="stats" aria-label="Statistiques guides">
+      <div class="panel stat-card">
+        <div class="stat-label">Guides</div>
+        <div class="stat-value" id="statGuidesTotal">0</div>
+        <div class="stat-sub">Total enregistrés</div>
+      </div>
+      <div class="panel stat-card">
+        <div class="stat-label">Affichés</div>
+        <div class="stat-value" id="statGuidesFiltered">0</div>
+        <div class="stat-sub">Après filtres</div>
+      </div>
+      <div class="panel stat-card">
+        <div class="stat-label">Catégories</div>
+        <div class="stat-value" id="statGuidesCategories">0</div>
+        <div class="stat-sub">Différentes</div>
+      </div>
+    </section>
+
+    <div class="layout">
+
+      <!-- Sidebar Guides -->
+      <aside class="sidebar">
+
+        <!-- Add guide (visible only when logged in) -->
+        <section class="panel section hidden" id="addGuideSection">
+          <h2>Ajouter un guide</h2>
+          <div class="grid-fields">
+            <input id="guideTitle" type="text" placeholder="Titre du guide" />
+            <select id="guideCategory" aria-label="Catégorie"></select>
+            <input id="guideDescription" type="text" placeholder="Description courte (optionnel)" />
+            <input id="guideLink" type="text" placeholder="Lien externe (YouTube, wiki, Discord...)" />
+            <input id="guideTags" type="text" placeholder="Tags (séparés par des virgules)" />
+            <textarea id="guideNotes" placeholder="Notes, points clés, conseils..."></textarea>
+            <button id="addGuideBtn" type="button">Ajouter</button>
+          </div>
+          <div id="guideStatusMessage" class="status" role="status" aria-live="polite"></div>
+        </section>
+
+        <!-- Filters Guides -->
+        <section class="panel section">
+          <h2>Filtres</h2>
+          <div class="grid-fields">
+            <div class="input-with-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg>
+              <input id="guideSearchInput" type="text" placeholder="Rechercher..." aria-label="Rechercher dans les guides" />
+            </div>
+          </div>
+
+          <!-- Category chips (au lieu du select) -->
+          <div class="category-chips-section">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h2>Catégories</h2>
+              <button id="clearCategoryBtn" type="button" class="tag-filter-clear hidden">
+                Tout afficher
+              </button>
+            </div>
+            <div id="categoryChips" class="category-chips" role="group" aria-label="Filtres par catégorie"></div>
+          </div>
+
+          <!-- Hidden select pour la compatibilité du code existant -->
+          <select id="guideFilterCategory" class="hidden" aria-hidden="true" tabindex="-1">
+            <option value="all">Toutes les catégories</option>
+          </select>
+
+          <div class="sort-row">
+            <label for="guideSortSelect">Trier :</label>
+            <select id="guideSortSelect" aria-label="Tri">
+              <option value="date_desc">Plus récents</option>
+              <option value="date_asc">Plus anciens</option>
+              <option value="title_asc">Titre A→Z</option>
+              <option value="title_desc">Titre Z→A</option>
+              <option value="category">Par catégorie</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- Categories repartition -->
+        <section class="panel section">
+          <h2>Répartition</h2>
+          <div id="guideCategorySummary" class="class-list"></div>
+        </section>
+
+      </aside>
+
+      <!-- Main Guides -->
+      <main class="main">
+        <section class="panel toolbar">
+          <div>
+            <h2>Tous les guides</h2>
+            <p id="guideToolbarText">Chargement...</p>
+          </div>
+          <div id="guideActivePills" class="pills"></div>
+        </section>
+
+        <section id="guideList" class="build-grid" aria-live="polite">
+          <div class="loading"><div class="spinner"></div><div>Chargement des guides...</div></div>
+        </section>
+      </main>
+
+    </div>
+  </div><!-- /viewGuides -->
+
+</div><!-- /.container -->
 
 <!-- Login modal -->
 <div id="loginModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
@@ -1265,6 +1793,29 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
   </div>
 </div>
 
+<!-- Guide edit modal -->
+<div id="editGuideModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editGuideTitle">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <h3 id="editGuideTitle">Modifier le guide</h3>
+        <p>Titre, catégorie, lien, tags et notes.</p>
+      </div>
+      <button id="closeEditGuideModalBtn" type="button" class="btn-ghost" aria-label="Fermer">✕</button>
+    </div>
+    <div class="grid-fields">
+      <input id="editGuideTitleInput" type="text" placeholder="Titre" />
+      <select id="editGuideCategory" aria-label="Catégorie"></select>
+      <input id="editGuideDescription" type="text" placeholder="Description courte" />
+      <input id="editGuideLink" type="text" placeholder="Lien externe" />
+      <input id="editGuideTags" type="text" placeholder="Tags (séparés par virgules)" />
+      <textarea id="editGuideNotes" placeholder="Notes, points clés, conseils..."></textarea>
+      <button id="saveEditGuideBtn" type="button">Enregistrer</button>
+    </div>
+    <div id="editGuideStatus" class="status" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
 <!-- Toast container -->
 <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
@@ -1298,18 +1849,34 @@ const VALID_BUILDER_DOMAINS = [
   "wynnbuilder.com", "www.wynnbuilder.com"
 ];
 
+// Catégories pour les guides Wynncraft
+const GUIDE_CATEGORIES = [
+  { value: "Combat",     label: "⚔️ Combat",     css: "cat-combat" },
+  { value: "Économie",   label: "💰 Économie",   css: "cat-economy" },
+  { value: "Quête",      label: "📜 Quête",      css: "cat-quest" },
+  { value: "Profession", label: "🔨 Profession", css: "cat-prof" },
+  { value: "Boss",       label: "👹 Boss",       css: "cat-boss" },
+  { value: "Donjon",     label: "🏰 Donjon",     css: "cat-dungeon" },
+  { value: "Autre",      label: "📌 Autre",      css: "cat-other" },
+];
+
 // =============================================================================
 // STATE
 // =============================================================================
 const state = {
   allBuilds: [],
+  allGuides: [],
+  currentView: "builds",          // "builds" ou "guides"
   currentUser: null,
   currentSession: null,
   editingBuildId: null,
+  editingGuideId: null,
   searchTimer: null,
   toastTimers: new Map(),
-  activeTags: new Set(),       // tags selectionnes par l'utilisateur
-  tagSearchQuery: "",          // filtre texte sur la liste des tags
+  activeTags: new Set(),
+  tagSearchQuery: "",
+  favorites: new Set(),
+  showOnlyFavorites: false,
 };
 
 // =============================================================================
@@ -1340,7 +1907,10 @@ const ui = {
   toolbarText: $("toolbarText"), activePills: $("activePills"),
 
   statTotal: $("statTotal"), statFiltered: $("statFiltered"),
-  statClasses: $("statClasses"), statEditors: $("statEditors"),
+  statClasses: $("statClasses"),
+  statFavoritesCard: $("statFavoritesCard"),
+  statFavorites: $("statFavorites"),
+  statFavoritesSub: $("statFavoritesSub"),
 
   loginModal: $("loginModal"), loginEmail: $("loginEmail"),
   loginPassword: $("loginPassword"), submitLoginBtn: $("submitLoginBtn"),
@@ -1362,6 +1932,47 @@ const ui = {
 
   exportBtn: $("exportBtn"), importBtn: $("importBtn"), importFile: $("importFile"),
   toastContainer: $("toastContainer"),
+
+  // View tabs
+  tabBuilds: $("tabBuilds"), tabGuides: $("tabGuides"),
+  tabCountBuilds: $("tabCountBuilds"), tabCountGuides: $("tabCountGuides"),
+  viewBuilds: $("viewBuilds"), viewGuides: $("viewGuides"),
+
+  // Guide form
+  addGuideSection: $("addGuideSection"),
+  guideTitle: $("guideTitle"), guideCategory: $("guideCategory"),
+  guideDescription: $("guideDescription"), guideLink: $("guideLink"),
+  guideTags: $("guideTags"), guideNotes: $("guideNotes"),
+  addGuideBtn: $("addGuideBtn"),
+  guideStatusMessage: $("guideStatusMessage"),
+
+  // Guide filters
+  guideSearchInput: $("guideSearchInput"),
+  guideFilterCategory: $("guideFilterCategory"),
+  guideSortSelect: $("guideSortSelect"),
+  categoryChips: $("categoryChips"),
+  clearCategoryBtn: $("clearCategoryBtn"),
+
+  // Guide render targets
+  guideList: $("guideList"),
+  guideCategorySummary: $("guideCategorySummary"),
+  guideToolbarText: $("guideToolbarText"),
+  guideActivePills: $("guideActivePills"),
+  statGuidesTotal: $("statGuidesTotal"),
+  statGuidesFiltered: $("statGuidesFiltered"),
+  statGuidesCategories: $("statGuidesCategories"),
+
+  // Guide edit modal
+  editGuideModal: $("editGuideModal"),
+  editGuideTitleInput: $("editGuideTitleInput"),
+  editGuideCategory: $("editGuideCategory"),
+  editGuideDescription: $("editGuideDescription"),
+  editGuideLink: $("editGuideLink"),
+  editGuideTags: $("editGuideTags"),
+  editGuideNotes: $("editGuideNotes"),
+  saveEditGuideBtn: $("saveEditGuideBtn"),
+  closeEditGuideModalBtn: $("closeEditGuideModalBtn"),
+  editGuideStatus: $("editGuideStatus"),
 };
 
 // =============================================================================
@@ -1445,6 +2056,97 @@ function toast(message, type = "info", duration = 3000) {
 }
 
 // =============================================================================
+// FAVORITES (localStorage)
+// =============================================================================
+const FAV_STORAGE_KEY = "wynn-favorites";
+
+function loadFavorites() {
+  try {
+    const raw = localStorage.getItem(FAV_STORAGE_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) state.favorites = new Set(arr);
+    }
+  } catch (e) {
+    console.warn("Favoris : lecture impossible", e);
+    state.favorites = new Set();
+  }
+}
+
+function saveFavorites() {
+  try {
+    localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify([...state.favorites]));
+  } catch (e) {
+    toast("Impossible de sauvegarder les favoris", "error");
+  }
+}
+
+function isFavorite(buildId) {
+  return state.favorites.has(buildId);
+}
+
+function toggleFavorite(buildId, btnEl) {
+  const wasFav = state.favorites.has(buildId);
+  if (wasFav) {
+    state.favorites.delete(buildId);
+  } else {
+    state.favorites.add(buildId);
+  }
+  saveFavorites();
+
+  // Mise a jour visuelle locale du bouton (sans re-render complet)
+  if (btnEl) {
+    btnEl.classList.toggle("is-fav", !wasFav);
+    btnEl.setAttribute("aria-pressed", !wasFav ? "true" : "false");
+    btnEl.querySelector("use").setAttribute("href", !wasFav ? "#icon-star" : "#icon-star-outline");
+
+    // Animation pop
+    btnEl.classList.remove("popping");
+    void btnEl.offsetWidth;
+    btnEl.classList.add("popping");
+
+    // Burst d'étoiles uniquement quand on AJOUTE en favori
+    if (!wasFav) spawnFavBurst(btnEl);
+  }
+
+  // Mettre à jour le compteur stats
+  ui.statFavorites.textContent = state.favorites.size;
+  // Re-render seulement si le filtre favoris est actif (le build doit potentiellement disparaître)
+  if (state.showOnlyFavorites) render();
+}
+
+function spawnFavBurst(btnEl) {
+  // 5 petites étoiles qui partent du bouton dans des directions aléatoires
+  const rect = btnEl.getBoundingClientRect();
+  const card = btnEl.closest(".card");
+  if (!card) return;
+  const cardRect = card.getBoundingClientRect();
+
+  for (let i = 0; i < 5; i++) {
+    const burst = document.createElement("div");
+    burst.className = "fav-burst";
+    burst.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24"><use href="#icon-star"/></svg>`;
+    burst.style.top  = (rect.top  - cardRect.top  + 8) + "px";
+    burst.style.left = (rect.left - cardRect.left + 8) + "px";
+    const angle = (Math.PI * 2 * i / 5) + (Math.random() - 0.5) * 0.6;
+    const dist  = 30 + Math.random() * 20;
+    burst.style.setProperty("--bx", (Math.cos(angle) * dist).toFixed(0) + "px");
+    burst.style.setProperty("--by", (Math.sin(angle) * dist).toFixed(0) + "px");
+    card.appendChild(burst);
+    setTimeout(() => burst.remove(), 600);
+  }
+}
+
+function toggleFavoritesFilter() {
+  state.showOnlyFavorites = !state.showOnlyFavorites;
+  ui.statFavoritesCard.classList.toggle("active", state.showOnlyFavorites);
+  ui.statFavoritesSub.textContent = state.showOnlyFavorites
+    ? "Filtre actif — recliquer pour tout voir"
+    : "Cliquer pour filtrer";
+  render();
+}
+
+// =============================================================================
 // THEME
 // =============================================================================
 function loadTheme() {
@@ -1473,6 +2175,7 @@ function updateAuthUI() {
   ui.scrollToAddBtn.classList.toggle("hidden", !loggedIn);
   ui.addSection.classList.toggle("hidden", !loggedIn);
   ui.importBtn.classList.toggle("hidden", !loggedIn);
+  if (ui.addGuideSection) ui.addGuideSection.classList.toggle("hidden", !loggedIn);
 }
 
 async function fetchCurrentUser() {
@@ -1907,6 +2610,7 @@ function getFilteredBuilds() {
   const activeTags = state.activeTags;
 
   let result = state.allBuilds.filter(b => {
+    if (state.showOnlyFavorites && !state.favorites.has(b.id)) return false;
     const haystack = `${b.name||""} ${b.class_name||""} ${b.subclass_name||""} ${b.notes||""} ${(b.tags||[]).join(" ")}`.toLowerCase();
     if (search && !haystack.includes(search)) return false;
     if (classF !== "all" && b.class_name !== classF) return false;
@@ -2199,6 +2903,456 @@ function clearTags() {
   render();
 }
 
+// =============================================================================
+// GUIDES — CRUD
+// =============================================================================
+async function loadGuides() {
+  ui.guideToolbarText.textContent = "Chargement...";
+  const { data, error } = await supabase
+    .from("guides").select("*")
+    .order("created_at", { ascending: false });
+  if (error) {
+    ui.guideToolbarText.textContent = "Erreur : " + error.message;
+    if (!error.message.includes("relation") && !error.message.includes("does not exist")) {
+      toast("Erreur chargement guides : " + error.message, "error");
+    } else {
+      toast("Table 'guides' absente. Exécute setup_guides.sql dans Supabase.", "info", 6000);
+    }
+    state.allGuides = [];
+    renderGuides();
+    return;
+  }
+  state.allGuides = data || [];
+  renderGuides();
+}
+
+async function addGuide() {
+  if (!state.currentUser || !state.currentSession) {
+    showStatus(ui.guideStatusMessage, "Tu dois être connecté.", "error");
+    return;
+  }
+
+  const title = ui.guideTitle.value.trim();
+  const category = ui.guideCategory.value;
+  const description = ui.guideDescription.value.trim();
+  const link = ui.guideLink.value.trim();
+  const tags = parseTags(ui.guideTags.value);
+  const notes = ui.guideNotes.value.trim();
+
+  if (!title) { showStatus(ui.guideStatusMessage, "Titre requis.", "error"); return; }
+  if (!link)  { showStatus(ui.guideStatusMessage, "Lien requis.", "error"); return; }
+
+  // Validation lien (juste http/https)
+  try {
+    const url = new URL(link);
+    if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error();
+  } catch {
+    showStatus(ui.guideStatusMessage, "Lien invalide. Utilise une URL complète (https://...).", "error");
+    return;
+  }
+
+  ui.addGuideBtn.disabled = true;
+  const payload = {
+    title, category, description, link, notes, tags,
+    owner_id: state.currentUser.id
+  };
+  const { error } = await supabase.from("guides").insert(payload);
+  ui.addGuideBtn.disabled = false;
+
+  if (error) {
+    showStatus(ui.guideStatusMessage, "Erreur ajout : " + error.message, "error");
+    return;
+  }
+
+  ui.guideTitle.value = ""; ui.guideDescription.value = "";
+  ui.guideLink.value = ""; ui.guideTags.value = "";
+  ui.guideNotes.value = "";
+  showStatus(ui.guideStatusMessage, "Guide ajouté avec succès.", "success");
+  toast("Guide ajouté.", "success");
+  await loadGuides();
+}
+
+async function saveEditGuide() {
+  if (!state.currentUser || !state.editingGuideId) return;
+  const payload = {
+    title: ui.editGuideTitleInput.value.trim(),
+    category: ui.editGuideCategory.value,
+    description: ui.editGuideDescription.value.trim(),
+    link: ui.editGuideLink.value.trim(),
+    tags: parseTags(ui.editGuideTags.value),
+    notes: ui.editGuideNotes.value.trim()
+  };
+  if (!payload.title) { showStatus(ui.editGuideStatus, "Titre requis.", "error"); return; }
+  if (!payload.link)  { showStatus(ui.editGuideStatus, "Lien requis.", "error"); return; }
+
+  ui.saveEditGuideBtn.disabled = true;
+  const { error } = await supabase.from("guides").update(payload).eq("id", state.editingGuideId);
+  ui.saveEditGuideBtn.disabled = false;
+
+  if (error) { showStatus(ui.editGuideStatus, "Modif impossible : " + error.message, "error"); return; }
+  closeModal(ui.editGuideModal);
+  toast("Guide modifié.", "success");
+  await loadGuides();
+}
+
+async function deleteGuide(id, title) {
+  if (!state.currentUser) return;
+  if (!confirm(`Supprimer le guide "${title}" ?\n\nCette action est définitive.`)) return;
+  const { error } = await supabase.from("guides").delete().eq("id", id);
+  if (error) { toast("Suppression impossible : " + error.message, "error"); return; }
+  toast("Guide supprimé.", "success");
+  await loadGuides();
+}
+
+function openEditGuideModal(guide) {
+  state.editingGuideId = guide.id;
+  ui.editGuideTitleInput.value = guide.title || "";
+  ui.editGuideCategory.value = guide.category || "Autre";
+  ui.editGuideDescription.value = guide.description || "";
+  ui.editGuideLink.value = guide.link || "";
+  ui.editGuideTags.value = tagsToString(guide.tags);
+  ui.editGuideNotes.value = guide.notes || "";
+  ui.editGuideStatus.textContent = "";
+  openModal(ui.editGuideModal);
+}
+
+// =============================================================================
+// GUIDES — RENDER
+// =============================================================================
+function getCategoryCss(catName) {
+  const c = GUIDE_CATEGORIES.find(x => x.value === catName);
+  return c ? c.css : "cat-other";
+}
+
+function getCategoryLabel(catName) {
+  const c = GUIDE_CATEGORIES.find(x => x.value === catName);
+  return c ? c.label : catName;
+}
+
+function getCategoryIcon(catName) {
+  const c = GUIDE_CATEGORIES.find(x => x.value === catName);
+  if (!c) return "icon-cat-other";
+  // Mapper Combat -> icon-cat-combat, etc.
+  return "icon-" + (c.css || "cat-other");
+}
+
+function getCategoryShortLabel(catName) {
+  // Sans emoji, juste le nom
+  const c = GUIDE_CATEGORIES.find(x => x.value === catName);
+  return c ? c.value : catName;
+}
+
+function categoryIconSvg(catName, size = 16) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true"><use href="#${getCategoryIcon(catName)}"/></svg>`;
+}
+
+function getFaviconUrl(link) {
+  try {
+    const url = new URL(link);
+    return `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=32`;
+  } catch { return ""; }
+}
+
+function renderCategoryChips() {
+  const chips = ui.categoryChips;
+  chips.innerHTML = "";
+  const active = ui.guideFilterCategory.value;
+
+  // Filter "Toutes" en premier
+  const allChip = document.createElement("button");
+  allChip.type = "button";
+  allChip.className = `cat-chip cat-other${active === "all" ? " active" : ""}`;
+  allChip.innerHTML = `Tout <span class="cat-count">${state.allGuides.length}</span>`;
+  allChip.addEventListener("click", () => setCategoryFilter("all"));
+  chips.appendChild(allChip);
+
+  GUIDE_CATEGORIES.forEach(cat => {
+    const total = state.allGuides.filter(g => g.category === cat.value).length;
+    if (total === 0 && active !== cat.value) return; // ne pas afficher les vides sauf si actif
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `cat-chip ${cat.css}${active === cat.value ? " active" : ""}${total === 0 ? " dim" : ""}`;
+    btn.title = total === 0 ? "Aucun guide" : `${total} guide(s)`;
+    btn.innerHTML = `
+      ${categoryIconSvg(cat.value, 14)}
+      <span>${escapeHtml(getCategoryShortLabel(cat.value))}</span>
+      <span class="cat-count">${total}</span>
+    `;
+    btn.addEventListener("click", () => setCategoryFilter(cat.value));
+    chips.appendChild(btn);
+  });
+
+  ui.clearCategoryBtn.classList.toggle("hidden", active === "all");
+}
+
+function setCategoryFilter(value) {
+  if (ui.guideFilterCategory.value === value) {
+    ui.guideFilterCategory.value = "all";
+  } else {
+    ui.guideFilterCategory.value = value;
+  }
+  renderGuides();
+}
+
+function getFilteredGuides() {
+  const search = ui.guideSearchInput.value.trim().toLowerCase();
+  const catF = ui.guideFilterCategory.value;
+
+  let result = state.allGuides.filter(g => {
+    const haystack = `${g.title||""} ${g.category||""} ${g.description||""} ${g.notes||""} ${(g.tags||[]).join(" ")}`.toLowerCase();
+    if (search && !haystack.includes(search)) return false;
+    if (catF !== "all" && g.category !== catF) return false;
+    return true;
+  });
+
+  const sortMode = ui.guideSortSelect.value;
+  result.sort((a, b) => {
+    switch (sortMode) {
+      case "date_asc":   return new Date(a.created_at) - new Date(b.created_at);
+      case "date_desc":  return new Date(b.created_at) - new Date(a.created_at);
+      case "title_asc":  return (a.title||"").localeCompare(b.title||"", "fr");
+      case "title_desc": return (b.title||"").localeCompare(a.title||"", "fr");
+      case "category":   return (a.category||"").localeCompare(b.category||"", "fr");
+      default: return 0;
+    }
+  });
+  return result;
+}
+
+function getDomainName(link) {
+  try {
+    const url = new URL(link);
+    return url.hostname.replace(/^www\./, "");
+  } catch { return ""; }
+}
+
+function renderGuideCard(guide) {
+  const isOwner = state.currentUser && guide.owner_id === state.currentUser.id;
+  const card = document.createElement("article");
+  const catCss = getCategoryCss(guide.category);
+  card.className = `card panel is-guide ${catCss}`;
+
+  const tagsHtml = (guide.tags && guide.tags.length)
+    ? `<div class="badges card-tags" style="margin-top:4px;">${guide.tags
+         .map(t => `<button type="button" class="badge tag-clickable" data-tag="${escapeHtml(t)}" title="Filtrer par ce tag">🏷️ ${escapeHtml(t)}</button>`).join("")}</div>`
+    : "";
+
+  const desc = guide.description
+    ? `<p class="guide-desc">${escapeHtml(guide.description)}</p>` : "";
+
+  const catLabel = getCategoryShortLabel(guide.category);
+  const favicon = getFaviconUrl(guide.link);
+  const domain = getDomainName(guide.link);
+
+  card.innerHTML = `
+    <div class="guide-header">
+      <div style="flex: 1; min-width: 0;">
+        <h3>${escapeHtml(guide.title)}</h3>
+        <div class="date">Ajouté le ${escapeHtml(formatDate(guide.created_at))}</div>
+        ${desc}
+      </div>
+      <div class="guide-cat-icon ${catCss}" title="${escapeHtml(catLabel)}">
+        ${categoryIconSvg(guide.category, 22)}
+      </div>
+    </div>
+
+    <div class="badges">
+      <span class="badge ${catCss}">
+        ${categoryIconSvg(guide.category, 12)}
+        ${escapeHtml(catLabel)}
+      </span>
+      ${domain ? `
+      <span class="domain-badge" title="${escapeHtml(domain)}">
+        ${favicon ? `<img class="domain-favicon" src="${favicon}" alt="" loading="lazy" onerror="this.style.display='none'"/>` : ""}
+        ${escapeHtml(domain)}
+      </span>` : ""}
+    </div>
+
+    ${tagsHtml}
+
+    ${guide.notes ? `<div class="notes-box">
+      <div class="notes-title">Notes</div>
+      <div class="notes-content">${escapeHtml(guide.notes)}</div>
+    </div>` : ""}
+  `;
+
+  // Actions
+  const actions = document.createElement("div");
+  actions.className = "actions";
+
+  const openBtn = document.createElement("a");
+  openBtn.className = "button-link";
+  openBtn.href = guide.link;
+  openBtn.target = "_blank";
+  openBtn.rel = "noopener noreferrer";
+  openBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" style="vertical-align:-2px;"><use href="#icon-external"/></svg> Ouvrir`;
+  actions.appendChild(openBtn);
+
+  const copyBtn = document.createElement("button");
+  copyBtn.type = "button";
+  copyBtn.className = "btn-secondary";
+  copyBtn.textContent = "Copier";
+  copyBtn.addEventListener("click", () => copyText(guide.link, "Lien copié"));
+  actions.appendChild(copyBtn);
+
+  if (isOwner) {
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "btn-secondary";
+    editBtn.textContent = "Modifier";
+    editBtn.addEventListener("click", () => openEditGuideModal(guide));
+    actions.appendChild(editBtn);
+
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "btn-danger";
+    delBtn.textContent = "Supprimer";
+    delBtn.addEventListener("click", () => deleteGuide(guide.id, guide.title));
+    actions.appendChild(delBtn);
+  }
+
+  card.appendChild(actions);
+
+  // Bind clicks on tag badges (filter par recherche)
+  card.querySelectorAll(".tag-clickable").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const tag = btn.dataset.tag;
+      ui.guideSearchInput.value = tag;
+      renderGuides();
+    });
+  });
+
+  return card;
+}
+
+function renderGuides() {
+  const filtered = getFilteredGuides();
+
+  // Render category chips
+  renderCategoryChips();
+
+  // Stats
+  ui.statGuidesTotal.textContent = state.allGuides.length;
+  ui.statGuidesFiltered.textContent = filtered.length;
+  ui.statGuidesCategories.textContent = new Set(state.allGuides.map(g => g.category)).size;
+  ui.tabCountGuides.textContent = state.allGuides.length;
+
+  // Toolbar text
+  ui.guideToolbarText.textContent = filtered.length
+    ? `${filtered.length} guide(s) sur ${state.allGuides.length}`
+    : "Aucun guide ne correspond.";
+
+  // Active pills
+  const pills = [];
+  if (ui.guideSearchInput.value.trim()) pills.push(`🔍 ${ui.guideSearchInput.value.trim()}`);
+  if (ui.guideFilterCategory.value !== "all") pills.push(`📂 ${ui.guideFilterCategory.value}`);
+  ui.guideActivePills.innerHTML = "";
+  pills.forEach(t => {
+    const d = document.createElement("div");
+    d.className = "pill active";
+    d.textContent = t;
+    ui.guideActivePills.appendChild(d);
+  });
+
+  // Category repartition (cliquable)
+  ui.guideCategorySummary.innerHTML = "";
+  GUIDE_CATEGORIES.forEach(cat => {
+    const total = state.allGuides.filter(g => g.category === cat.value).length;
+    if (total === 0) return;
+    const isActive = ui.guideFilterCategory.value === cat.value;
+    const div = document.createElement("div");
+    div.className = `class-row ${cat.css}${isActive ? ' active' : ''}`;
+    div.dataset.clickable = "true";
+    div.dataset.category = cat.value;
+    div.innerHTML = `
+      <div class="row-left">
+        <span style="color: var(--${cat.css === 'cat-other' ? 'muted' : ''}); display:flex;">
+          ${categoryIconSvg(cat.value, 18)}
+        </span>
+        <strong>${escapeHtml(getCategoryShortLabel(cat.value))}</strong>
+      </div>
+      <span class="count">${total}</span>
+    `;
+    div.addEventListener("click", () => setCategoryFilter(cat.value));
+    ui.guideCategorySummary.appendChild(div);
+  });
+  if (!ui.guideCategorySummary.children.length) {
+    ui.guideCategorySummary.innerHTML = `<p class="helper" style="margin:0; text-align:center; padding:12px 0;">Aucun guide pour le moment.</p>`;
+  }
+
+  // Liste
+  ui.guideList.innerHTML = "";
+  if (!filtered.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty panel";
+    empty.innerHTML = `
+      <svg class="empty-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-empty"/></svg>
+      <h3>Aucun guide trouvé</h3>
+      <p>${state.currentUser
+          ? "Ajoute un guide via le formulaire ou modifie les filtres."
+          : "Connecte-toi pour ajouter un guide, ou modifie les filtres."}</p>
+    `;
+    ui.guideList.appendChild(empty);
+    return;
+  }
+  const frag = document.createDocumentFragment();
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  filtered.forEach((g, i) => {
+    const card = renderGuideCard(g);
+    if (!reducedMotion && i < 12) {
+      card.classList.add("animated");
+      card.style.animationDelay = `${Math.min(i * 40, 480)}ms`;
+    }
+    frag.appendChild(card);
+  });
+  ui.guideList.appendChild(frag);
+}
+
+// =============================================================================
+// GUIDES — POPULATION DES SELECTS
+// =============================================================================
+function populateGuideSelects() {
+  // Form add + edit
+  [ui.guideCategory, ui.editGuideCategory].forEach(sel => {
+    if (!sel) return;
+    sel.innerHTML = "";
+    GUIDE_CATEGORIES.forEach(c => {
+      const o = document.createElement("option");
+      o.value = c.value; o.textContent = c.label;
+      sel.appendChild(o);
+    });
+  });
+  // Filter
+  ui.guideFilterCategory.innerHTML = '<option value="all">Toutes les catégories</option>';
+  GUIDE_CATEGORIES.forEach(c => {
+    const o = document.createElement("option");
+    o.value = c.value; o.textContent = c.label;
+    ui.guideFilterCategory.appendChild(o);
+  });
+}
+
+// =============================================================================
+// VIEW SWITCHER
+// =============================================================================
+function switchView(view) {
+  state.currentView = view;
+  const isBuilds = view === "builds";
+
+  ui.tabBuilds.classList.toggle("active", isBuilds);
+  ui.tabBuilds.setAttribute("aria-selected", isBuilds ? "true" : "false");
+  ui.tabGuides.classList.toggle("active", !isBuilds);
+  ui.tabGuides.setAttribute("aria-selected", !isBuilds ? "true" : "false");
+
+  ui.viewBuilds.classList.toggle("hidden", !isBuilds);
+  ui.viewGuides.classList.toggle("hidden", isBuilds);
+
+  // L'export/import et le bouton "+ Build" en haut sont liés à la vue Builds
+  // -> mettre à jour les bonnes sections (déjà gérées par updateAuthUI)
+  updateAuthUI();
+}
+
 function renderToolbar(filtered) {
   ui.toolbarText.textContent = filtered.length
     ? `${filtered.length} build(s) sur ${state.allBuilds.length}`
@@ -2354,6 +3508,7 @@ function render() {
   renderTagChips();
   renderToolbar(filtered);
   renderBuilds(filtered);
+  ui.tabCountBuilds.textContent = state.allBuilds.length;
 }
 
 const debouncedRender = (function() {
@@ -2450,12 +3605,37 @@ function bindEvents() {
     }
   });
 
+  // ====== GUIDES ======
+  // Tabs
+  ui.tabBuilds.addEventListener("click", () => switchView("builds"));
+  ui.tabGuides.addEventListener("click", () => switchView("guides"));
+
+  // Add guide
+  ui.addGuideBtn.addEventListener("click", addGuide);
+
+  // Edit guide
+  ui.saveEditGuideBtn.addEventListener("click", saveEditGuide);
+  ui.closeEditGuideModalBtn.addEventListener("click", () => closeModal(ui.editGuideModal));
+  ui.editGuideModal.addEventListener("click", e => { if (e.target === ui.editGuideModal) closeModal(ui.editGuideModal); });
+
+  // Filters guides
+  ui.guideSearchInput.addEventListener("input", () => {
+    if (state.searchTimer) clearTimeout(state.searchTimer);
+    state.searchTimer = setTimeout(renderGuides, 150);
+  });
+  ui.guideFilterCategory.addEventListener("change", renderGuides);
+  ui.guideSortSelect.addEventListener("change", renderGuides);
+  ui.clearCategoryBtn.addEventListener("click", () => {
+    ui.guideFilterCategory.value = "all";
+    renderGuides();
+  });
+
   // Auth state changes
   supabase.auth.onAuthStateChange((_evt, session) => {
     state.currentSession = session ?? null;
     state.currentUser = session?.user ?? null;
     updateAuthUI();
-    setTimeout(loadBuilds, 0);
+    setTimeout(() => { loadBuilds(); loadGuides(); }, 0);
   });
 }
 
@@ -2465,9 +3645,11 @@ function bindEvents() {
 async function init() {
   loadTheme();
   populateSelects();
+  populateGuideSelects();
+  loadFavorites();
   bindEvents();
   await fetchCurrentUser();
-  await loadBuilds();
+  await Promise.all([loadBuilds(), loadGuides()]);
 }
 
 init();
