@@ -2647,7 +2647,9 @@ function renderStats(filtered) {
   ui.statTotal.textContent = state.allBuilds.length;
   ui.statFiltered.textContent = filtered.length;
   ui.statClasses.textContent = new Set(state.allBuilds.map(b => b.class_name)).size;
-  ui.statEditors.textContent = new Set(state.allBuilds.map(b => b.owner_id).filter(Boolean)).size;
+  // Compteur de favoris (uniquement ceux qui correspondent a des builds existants)
+  const validFavCount = state.allBuilds.filter(b => state.favorites.has(b.id)).length;
+  ui.statFavorites.textContent = validFavCount;
 }
 
 /**
@@ -3584,6 +3586,7 @@ function bindEvents() {
 
   // Keyboard shortcuts
   document.addEventListener("keydown", e => {
+    if (!e.key) return;  // touches mortes / IME
     // Ctrl+K = search
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
       e.preventDefault();
@@ -3593,8 +3596,8 @@ function bindEvents() {
     }
     // Esc = close any open modal
     if (e.key === "Escape") {
-      [ui.loginModal, ui.editModal, ui.previewModal].forEach(m => {
-        if (m.classList.contains("open")) closeModal(m);
+      [ui.loginModal, ui.editModal, ui.previewModal, ui.editGuideModal].forEach(m => {
+        if (m && m.classList.contains("open")) closeModal(m);
       });
       return;
     }
