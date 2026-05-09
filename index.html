@@ -6,7 +6,198 @@
 <meta name="theme-color" content="#0a1220" />
 <title>Wynn Dashboard</title>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css">
 <style>
+/* ==========================================================================
+   Éditeur de guides — toolbar 100% custom en français
+   ========================================================================== */
+
+/* Masquer le toolbar Quill Snow par défaut (on utilise le nôtre) */
+.ql-toolbar.ql-snow { display: none !important; }
+
+/* Conteneur toolbar custom */
+.ql-toolbar-custom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  padding: 8px 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+}
+
+/* Séparateur vertical */
+.qtb-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+/* Groupe de boutons */
+.qtb-group {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+/* Bouton standard */
+.qtb-btn {
+  height: 32px;
+  min-width: 32px;
+  padding: 0 8px;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all .12s ease-out;
+  white-space: nowrap;
+  transform: none !important;
+  box-shadow: none !important;
+  font-family: inherit;
+}
+.qtb-btn:hover {
+  background: var(--bg-2);
+  border-color: var(--border);
+  color: var(--blue);
+}
+/* État actif quand Quill active le format */
+.qtb-btn.ql-active {
+  background: var(--blue-glow);
+  border-color: var(--blue);
+  color: var(--blue);
+  font-weight: 700;
+}
+
+/* Bouton large (avec libellé) */
+.qtb-wide { padding: 0 10px; }
+
+/* Zone de saisie Quill */
+.ql-container.ql-snow {
+  border: 1px solid var(--border) !important;
+  border-top: none !important;
+  border-radius: 0 0 10px 10px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: inherit;
+  min-height: 180px;
+  font-size: 14px;
+}
+.ql-editor {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.65;
+  min-height: 180px;
+  padding: 14px 16px;
+}
+.ql-editor.ql-blank::before {
+  color: var(--muted-2);
+  font-style: italic;
+  left: 16px;
+}
+/* Styles de contenu dans l'éditeur */
+.ql-editor h2        { font-size: 18px; font-weight: 700; margin: 14px 0 6px; color: var(--text); }
+.ql-editor h3        { font-size: 15px; font-weight: 700; margin: 12px 0 4px; color: var(--text); }
+.ql-editor p         { margin: 0 0 8px; }
+.ql-editor strong    { font-weight: 700; }
+.ql-editor em        { font-style: italic; }
+.ql-editor u         { text-decoration: underline; }
+.ql-editor s         { text-decoration: line-through; }
+.ql-editor ul, .ql-editor ol { padding-left: 22px; margin: 4px 0 10px; }
+.ql-editor li        { margin: 2px 0; }
+.ql-editor blockquote {
+  border-left: 3px solid var(--blue);
+  padding: 6px 12px;
+  margin: 8px 0;
+  background: var(--panel-2);
+  border-radius: 0 6px 6px 0;
+  color: var(--muted);
+}
+.ql-editor a         { color: var(--blue); text-decoration: underline; }
+.ql-editor img       { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; }
+
+/* Popup Quill (lien) — adapter au thème */
+.ql-tooltip {
+  background: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  box-shadow: var(--shadow) !important;
+  color: var(--text) !important;
+  font-family: inherit !important;
+  padding: 10px 14px !important;
+}
+.ql-tooltip input[type="text"] {
+  background: var(--panel-2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 7px !important;
+  color: var(--text) !important;
+  padding: 6px 10px !important;
+  font-family: inherit !important;
+}
+.ql-tooltip a.ql-action, .ql-tooltip a.ql-remove {
+  color: var(--blue) !important;
+  font-weight: 600 !important;
+  margin-left: 8px !important;
+}
+.ql-tooltip a.ql-action::after { content: "Valider" !important; }
+.ql-tooltip a.ql-remove::before { content: "Supprimer" !important; }
+.ql-tooltip::before { content: "🔗 Colle l'adresse du lien :" !important; color: var(--muted) !important; display: block !important; margin-bottom: 6px !important; font-size: 12px !important; }
+.ql-tooltip[data-mode="link"]::before { content: "🔗 Colle l'adresse du lien :" !important; }
+
+/* Hint sous l'éditeur */
+.qtb-hint {
+  font-size: 11px;
+  color: var(--muted-2);
+  margin: 5px 0 0;
+  line-height: 1.5;
+}
+
+/* Rendu article dans la modale lecture */
+.article-content { font-size: 15px; line-height: 1.75; color: var(--text); }
+.article-content h1 { font-size: 22px; font-weight: 700; margin: 18px 0 8px; }
+.article-content h2 { font-size: 18px; font-weight: 700; margin: 16px 0 6px; }
+.article-content h3 { font-size: 15px; font-weight: 700; margin: 14px 0 4px; }
+.article-content p  { margin: 0 0 10px; }
+.article-content ul, .article-content ol { margin: 6px 0 10px 24px; }
+.article-content img { max-width: 100%; border-radius: 10px; margin: 10px 0; }
+.article-content a   { color: var(--blue); text-decoration: underline; }
+.article-content blockquote {
+  border-left: 3px solid var(--blue);
+  padding: 8px 14px;
+  background: var(--panel-2);
+  border-radius: 0 8px 8px 0;
+  color: var(--muted);
+  margin: 10px 0;
+}
+.article-content strong { font-weight: 700; }
+.article-content em     { font-style: italic; }
+
+/* Bouton "Lire l'article" dans les cartes guide */
+.read-more-btn {
+  background: none;
+  border: 1px solid var(--success);
+  color: var(--success);
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all .15s;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.read-more-btn:hover { background: rgba(34,197,94,.12); }
+
 /* ==========================================================================
    View tabs (Builds | Guides)
    ========================================================================== */
@@ -839,23 +1030,89 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
 
 .helper { font-size: 12px; color: var(--muted-2); margin: 0; }
 
-/* Tag filter chips */
+/* Tag filter dropdown */
 .tag-filter-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
 }
-.tag-filter-head {
+.tag-dropdown-toggle {
+  width: 100%;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: border-color .15s, background .15s;
+  box-shadow: none;
+  transform: none !important;
 }
-.tag-filter-label {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.tag-dropdown-toggle:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-2);
+  box-shadow: none;
+}
+.tag-dropdown-toggle[aria-expanded="true"] {
+  border-radius: 10px 10px 0 0;
+  border-bottom-color: transparent;
+  background: var(--panel-2);
+}
+.tag-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tag-toggle-arrow {
+  transition: transform .2s ease-out;
   color: var(--muted);
+  flex-shrink: 0;
+}
+.tag-dropdown-toggle[aria-expanded="true"] .tag-toggle-arrow {
+  transform: rotate(180deg);
+}
+.tag-active-badge {
+  background: linear-gradient(135deg, var(--blue), var(--blue-2));
+  color: #fff;
+  font-size: 10px;
   font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  min-width: 18px;
+  text-align: center;
+}
+.tag-dropdown-body {
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  overflow: hidden;
+  animation: dropdownOpen .18s ease-out;
+}
+@keyframes dropdownOpen {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.tag-dropdown-inner {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--panel-2);
+}
+.tag-dropdown-toolbar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.tag-dropdown-toolbar input {
+  flex: 1;
+  font-size: 12px;
+  padding: 7px 10px;
 }
 .tag-filter-clear {
   background: transparent;
@@ -866,28 +1123,20 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
   cursor: pointer;
   padding: 2px 6px;
   border-radius: 6px;
-  transition: background .15s, transform .12s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background .15s;
+  transform: none !important;
+  box-shadow: none !important;
 }
-.tag-filter-clear:hover {
-  background: var(--blue-glow);
-  transform: none;
-  box-shadow: none;
-}
-.tag-search-input {
-  font-size: 12px;
-  padding: 7px 10px;
-}
+.tag-filter-clear:hover { background: var(--blue-glow); }
 .tag-chips-list {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  max-height: 220px;
+  max-height: 200px;
   overflow-y: auto;
-  padding: 4px;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  min-height: 50px;
+  padding: 2px;
 }
 .tag-chips-list:empty::after {
   content: "Aucun tag pour le moment.";
@@ -897,7 +1146,7 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
   color: var(--muted-2);
   font-size: 12px;
   font-style: italic;
-  padding: 14px 6px;
+  padding: 10px 6px;
 }
 .tag-chip {
   display: inline-flex;
@@ -905,7 +1154,7 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
   gap: 5px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: var(--panel-2);
+  background: var(--panel);
   border: 1px solid var(--border);
   color: var(--text);
   font-size: 12px;
@@ -913,11 +1162,14 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
   transition: all .12s ease-out;
   user-select: none;
   white-space: nowrap;
+  transform: none;
+  box-shadow: none;
 }
 .tag-chip:hover {
   border-color: var(--blue);
   background: var(--blue-glow);
-  transform: translateY(-1px);
+  transform: translateY(-1px) !important;
+  box-shadow: none !important;
 }
 .tag-chip.active {
   background: linear-gradient(135deg, var(--blue), var(--blue-2));
@@ -925,7 +1177,6 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
   border-color: var(--blue-2);
   box-shadow: 0 2px 6px var(--blue-glow);
 }
-.tag-chip.active:hover { transform: translateY(-1px); }
 .tag-chip.dim { opacity: .35; }
 .tag-chip .tag-count {
   font-size: 10px;
@@ -937,10 +1188,7 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
   min-width: 14px;
   text-align: center;
 }
-.tag-chip.active .tag-count {
-  background: rgba(255,255,255,.22);
-  color: #fff;
-}
+.tag-chip.active .tag-count { background: rgba(255,255,255,.22); color: #fff; }
 .tag-chip-empty {
   width: 100%;
   text-align: center;
@@ -1461,6 +1709,8 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
        VUE BUILDS
        ========================================================= -->
   <div id="viewBuilds" class="view-section" role="tabpanel" aria-labelledby="tabBuilds">
+  <!-- Stats -->
+  <section class="stats" aria-label="Statistiques">
     <div class="panel stat-card">
       <div class="stat-label">Builds</div>
       <div class="stat-value" id="statTotal">0</div>
@@ -1520,19 +1770,33 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
           </select>
         </div>
 
-        <!-- Tags filter : liste de chips cliquables -->
+        <!-- Tags filter : dropdown collapsible -->
         <div id="tagFilterSection" class="tag-filter-section">
-          <div class="tag-filter-head">
-            <label class="tag-filter-label">Tags</label>
-            <button id="clearTagsBtn" type="button" class="tag-filter-clear hidden">
-              Effacer (<span id="activeTagCount">0</span>)
-            </button>
+          <button id="tagDropdownToggle" type="button" class="tag-dropdown-toggle" aria-expanded="false" aria-controls="tagDropdownBody">
+            <span class="tag-toggle-left">
+              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg>
+              <span>Tags</span>
+              <span id="activeTagBadge" class="tag-active-badge hidden">0</span>
+            </span>
+            <svg class="tag-toggle-arrow" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 9 L12 15 L18 9" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <div id="tagDropdownBody" class="tag-dropdown-body" hidden>
+            <div class="tag-dropdown-inner">
+              <div class="tag-dropdown-toolbar">
+                <input id="tagSearchInput" type="text"
+                       class="tag-search-input"
+                       placeholder="Chercher un tag..."
+                       aria-label="Rechercher dans les tags" />
+                <button id="clearTagsBtn" type="button" class="tag-filter-clear hidden">
+                  Effacer (<span id="activeTagCount">0</span>)
+                </button>
+              </div>
+              <div id="tagChipsList" class="tag-chips-list" role="group" aria-label="Liste des tags disponibles"></div>
+            </div>
           </div>
-          <input id="tagSearchInput" type="text"
-                 class="tag-search-input"
-                 placeholder="Filtrer les tags..."
-                 aria-label="Rechercher dans les tags" />
-          <div id="tagChipsList" class="tag-chips-list" role="group" aria-label="Liste des tags disponibles"></div>
         </div>
 
         <div class="sort-row">
@@ -1632,7 +1896,45 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
             <input id="guideDescription" type="text" placeholder="Description courte (optionnel)" />
             <input id="guideLink" type="text" placeholder="Lien externe (YouTube, wiki, Discord...)" />
             <input id="guideTags" type="text" placeholder="Tags (séparés par des virgules)" />
-            <textarea id="guideNotes" placeholder="Notes, points clés, conseils..."></textarea>
+            <div>
+              <label style="font-size:12px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:6px;">Article / Notes</label>
+              <div id="guideEditorContainer">
+                <!-- Toolbar custom en français -->
+                <div id="toolbar-add" class="ql-toolbar-custom">
+                  <span class="qtb-group">
+                    <button type="button" class="ql-header qtb-btn qtb-wide" value="2" title="Titre principal">📌 Titre</button>
+                    <button type="button" class="ql-header qtb-btn qtb-wide" value="3" title="Sous-titre">📎 Sous-titre</button>
+                  </span>
+                  <span class="qtb-sep"></span>
+                  <span class="qtb-group">
+                    <button type="button" class="ql-bold  qtb-btn" title="Gras (Ctrl+B)"><strong>G</strong></button>
+                    <button type="button" class="ql-italic qtb-btn" title="Italique (Ctrl+I)"><em>I</em></button>
+                    <button type="button" class="ql-underline qtb-btn" title="Souligné (Ctrl+U)"><u>S</u></button>
+                    <button type="button" class="ql-strike  qtb-btn" title="Barré"><s>B̶</s></button>
+                  </span>
+                  <span class="qtb-sep"></span>
+                  <span class="qtb-group">
+                    <button type="button" class="ql-list qtb-btn qtb-wide" value="bullet"  title="Liste à puces">• Liste</button>
+                    <button type="button" class="ql-list qtb-btn qtb-wide" value="ordered" title="Liste numérotée">1. Liste</button>
+                  </span>
+                  <span class="qtb-sep"></span>
+                  <span class="qtb-group">
+                    <button type="button" class="ql-blockquote qtb-btn qtb-wide" title="Citation en retrait">❝ Citation</button>
+                  </span>
+                  <span class="qtb-sep"></span>
+                  <span class="qtb-group">
+                    <button type="button" class="ql-link  qtb-btn qtb-wide" title="Insérer un lien">🔗 Lien</button>
+                    <button type="button" class="ql-image qtb-btn qtb-wide" title="Insérer une image">🖼 Image</button>
+                  </span>
+                  <span class="qtb-sep"></span>
+                  <span class="qtb-group">
+                    <button type="button" class="ql-clean qtb-btn qtb-wide" title="Supprimer la mise en forme">✕ Effacer style</button>
+                  </span>
+                </div>
+                <div id="guideEditor"></div>
+              </div>
+              <p class="qtb-hint">💡 Sélectionne du texte puis clique sur un bouton pour le mettre en forme. Pour insérer une image, clique sur 🖼 Image.</p>
+            </div>
             <button id="addGuideBtn" type="button">Ajouter</button>
           </div>
           <div id="guideStatusMessage" class="status" role="status" aria-live="polite"></div>
@@ -1793,6 +2095,25 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
   </div>
 </div>
 
+<!-- Article reader modal -->
+<div id="articleModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="articleTitle">
+  <div class="modal-box" style="max-width: 760px;">
+    <div class="modal-head">
+      <div>
+        <h3 id="articleTitle">Article</h3>
+        <p id="articleSubtitle" style="margin: 4px 0 0; font-size: 13px; color: var(--muted);"></p>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <a id="articleOpenLink" class="button-link btn-secondary" href="#" target="_blank" rel="noopener noreferrer" style="font-size:13px;">
+          <svg width="13" height="13" viewBox="0 0 24 24"><use href="#icon-external"/></svg>Ouvrir
+        </a>
+        <button id="closeArticleBtn" type="button" class="btn-ghost" aria-label="Fermer">✕</button>
+      </div>
+    </div>
+    <div id="articleContent" class="article-content" style="padding: 4px 0;"></div>
+  </div>
+</div>
+
 <!-- Guide edit modal -->
 <div id="editGuideModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editGuideTitle">
   <div class="modal-box">
@@ -1809,7 +2130,44 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
       <input id="editGuideDescription" type="text" placeholder="Description courte" />
       <input id="editGuideLink" type="text" placeholder="Lien externe" />
       <input id="editGuideTags" type="text" placeholder="Tags (séparés par virgules)" />
-      <textarea id="editGuideNotes" placeholder="Notes, points clés, conseils..."></textarea>
+      <div>
+        <label style="font-size:12px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:6px;">Article / Notes</label>
+        <div id="editGuideEditorContainer">
+          <div id="toolbar-edit" class="ql-toolbar-custom">
+            <span class="qtb-group">
+              <button type="button" class="ql-header qtb-btn qtb-wide" value="2" title="Titre">📌 Titre</button>
+              <button type="button" class="ql-header qtb-btn qtb-wide" value="3" title="Sous-titre">📎 Sous-titre</button>
+            </span>
+            <span class="qtb-sep"></span>
+            <span class="qtb-group">
+              <button type="button" class="ql-bold     qtb-btn" title="Gras"><strong>G</strong></button>
+              <button type="button" class="ql-italic   qtb-btn" title="Italique"><em>I</em></button>
+              <button type="button" class="ql-underline qtb-btn" title="Souligné"><u>S</u></button>
+              <button type="button" class="ql-strike   qtb-btn" title="Barré"><s>B̶</s></button>
+            </span>
+            <span class="qtb-sep"></span>
+            <span class="qtb-group">
+              <button type="button" class="ql-list qtb-btn qtb-wide" value="bullet"  title="Liste à puces">• Liste</button>
+              <button type="button" class="ql-list qtb-btn qtb-wide" value="ordered" title="Liste numérotée">1. Liste</button>
+            </span>
+            <span class="qtb-sep"></span>
+            <span class="qtb-group">
+              <button type="button" class="ql-blockquote qtb-btn qtb-wide" title="Citation">❝ Citation</button>
+            </span>
+            <span class="qtb-sep"></span>
+            <span class="qtb-group">
+              <button type="button" class="ql-link  qtb-btn qtb-wide" title="Lien">🔗 Lien</button>
+              <button type="button" class="ql-image qtb-btn qtb-wide" title="Image">🖼 Image</button>
+            </span>
+            <span class="qtb-sep"></span>
+            <span class="qtb-group">
+              <button type="button" class="ql-clean qtb-btn qtb-wide" title="Effacer le style">✕ Effacer style</button>
+            </span>
+          </div>
+          <div id="editGuideEditor"></div>
+        </div>
+        <p class="qtb-hint">💡 Sélectionne du texte puis clique sur un bouton pour le mettre en forme.</p>
+      </div>
       <button id="saveEditGuideBtn" type="button">Enregistrer</button>
     </div>
     <div id="editGuideStatus" class="status" role="status" aria-live="polite"></div>
@@ -1819,8 +2177,13 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
 <!-- Toast container -->
 <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+// Instances des editeurs Quill (initialisees dans init())
+let quillAdd  = null;
+let quillEdit = null;
 
 // =============================================================================
 // CONFIGURATION
@@ -1901,6 +2264,9 @@ const ui = {
   tagChipsList: $("tagChipsList"),
   clearTagsBtn: $("clearTagsBtn"),
   activeTagCount: $("activeTagCount"),
+  activeTagBadge: $("activeTagBadge"),
+  tagDropdownToggle: $("tagDropdownToggle"),
+  tagDropdownBody: $("tagDropdownBody"),
 
   buildList: $("buildList"), classSummary: $("classSummary"),
   classDonut: $("classDonut"),
@@ -1942,7 +2308,7 @@ const ui = {
   addGuideSection: $("addGuideSection"),
   guideTitle: $("guideTitle"), guideCategory: $("guideCategory"),
   guideDescription: $("guideDescription"), guideLink: $("guideLink"),
-  guideTags: $("guideTags"), guideNotes: $("guideNotes"),
+  guideTags: $("guideTags"),
   addGuideBtn: $("addGuideBtn"),
   guideStatusMessage: $("guideStatusMessage"),
 
@@ -1969,10 +2335,17 @@ const ui = {
   editGuideDescription: $("editGuideDescription"),
   editGuideLink: $("editGuideLink"),
   editGuideTags: $("editGuideTags"),
-  editGuideNotes: $("editGuideNotes"),
   saveEditGuideBtn: $("saveEditGuideBtn"),
   closeEditGuideModalBtn: $("closeEditGuideModalBtn"),
   editGuideStatus: $("editGuideStatus"),
+
+  // Article reader modal
+  articleModal: $("articleModal"),
+  articleTitle: $("articleTitle"),
+  articleSubtitle: $("articleSubtitle"),
+  articleContent: $("articleContent"),
+  articleOpenLink: $("articleOpenLink"),
+  closeArticleBtn: $("closeArticleBtn"),
 };
 
 // =============================================================================
@@ -2887,6 +3260,9 @@ function updateClearTagsButton() {
   const n = state.activeTags.size;
   ui.activeTagCount.textContent = n;
   ui.clearTagsBtn.classList.toggle("hidden", n === 0);
+  // Badge sur le bouton toggle
+  ui.activeTagBadge.textContent = n;
+  ui.activeTagBadge.classList.toggle("hidden", n === 0);
 }
 
 function toggleTag(tagKey) {
@@ -2939,7 +3315,8 @@ async function addGuide() {
   const description = ui.guideDescription.value.trim();
   const link = ui.guideLink.value.trim();
   const tags = parseTags(ui.guideTags.value);
-  const notes = ui.guideNotes.value.trim();
+  const notes = quillAdd ? quillAdd.getText().trim() : "";
+  const content = quillAdd ? quillAdd.root.innerHTML : "";
 
   if (!title) { showStatus(ui.guideStatusMessage, "Titre requis.", "error"); return; }
   if (!link)  { showStatus(ui.guideStatusMessage, "Lien requis.", "error"); return; }
@@ -2955,7 +3332,7 @@ async function addGuide() {
 
   ui.addGuideBtn.disabled = true;
   const payload = {
-    title, category, description, link, notes, tags,
+    title, category, description, link, notes, content, tags,
     owner_id: state.currentUser.id
   };
   const { error } = await supabase.from("guides").insert(payload);
@@ -2968,7 +3345,7 @@ async function addGuide() {
 
   ui.guideTitle.value = ""; ui.guideDescription.value = "";
   ui.guideLink.value = ""; ui.guideTags.value = "";
-  ui.guideNotes.value = "";
+  if (quillAdd) quillAdd.setText("");
   showStatus(ui.guideStatusMessage, "Guide ajouté avec succès.", "success");
   toast("Guide ajouté.", "success");
   await loadGuides();
@@ -2982,7 +3359,8 @@ async function saveEditGuide() {
     description: ui.editGuideDescription.value.trim(),
     link: ui.editGuideLink.value.trim(),
     tags: parseTags(ui.editGuideTags.value),
-    notes: ui.editGuideNotes.value.trim()
+    notes: quillEdit ? quillEdit.getText().trim() : "",
+    content: quillEdit ? quillEdit.root.innerHTML : ""
   };
   if (!payload.title) { showStatus(ui.editGuideStatus, "Titre requis.", "error"); return; }
   if (!payload.link)  { showStatus(ui.editGuideStatus, "Lien requis.", "error"); return; }
@@ -3013,8 +3391,19 @@ function openEditGuideModal(guide) {
   ui.editGuideDescription.value = guide.description || "";
   ui.editGuideLink.value = guide.link || "";
   ui.editGuideTags.value = tagsToString(guide.tags);
-  ui.editGuideNotes.value = guide.notes || "";
   ui.editGuideStatus.textContent = "";
+
+  // Charger le contenu dans Quill
+  if (quillEdit) {
+    if (guide.content) {
+      quillEdit.root.innerHTML = guide.content;
+    } else if (guide.notes) {
+      // Rétrocompatibilité : anciens guides avec textarea
+      quillEdit.setText(guide.notes);
+    } else {
+      quillEdit.setText("");
+    }
+  }
   openModal(ui.editGuideModal);
 }
 
@@ -3129,6 +3518,31 @@ function getDomainName(link) {
   } catch { return ""; }
 }
 
+function openArticle(guide) {
+  ui.articleTitle.textContent = guide.title;
+  const catLabel = getCategoryShortLabel(guide.category);
+  ui.articleSubtitle.textContent = `${catLabel} • Ajouté le ${formatDate(guide.created_at)}`;
+  ui.articleOpenLink.href = guide.link || "#";
+
+  const content = guide.content || "";
+  const fallback = guide.notes || "";
+
+  if (content && content.trim() !== "<p><br></p>" && content.trim() !== "") {
+    // Contenu Quill HTML
+    ui.articleContent.innerHTML = content;
+  } else if (fallback) {
+    // Fallback texte simple
+    ui.articleContent.innerHTML = `<p>${escapeHtml(fallback).replace(/\n/g, "<br>")}</p>`;
+  } else {
+    ui.articleContent.innerHTML = `<p style="color:var(--muted-2); font-style:italic;">Aucun article pour ce guide.</p>`;
+  }
+
+  // Sécurité : sanitiser les scripts dans le contenu affiché
+  ui.articleContent.querySelectorAll("script").forEach(s => s.remove());
+
+  openModal(ui.articleModal);
+}
+
 function renderGuideCard(guide) {
   const isOwner = state.currentUser && guide.owner_id === state.currentUser.id;
   const card = document.createElement("article");
@@ -3146,6 +3560,11 @@ function renderGuideCard(guide) {
   const catLabel = getCategoryShortLabel(guide.category);
   const favicon = getFaviconUrl(guide.link);
   const domain = getDomainName(guide.link);
+
+  const hasContent = (guide.content && guide.content.trim() !== "<p><br></p>" && guide.content.trim() !== "") || guide.notes;
+  const contentPreview = guide.notes
+    ? `<div class="notes-box" style="margin-top:0;"><div class="notes-content">${escapeHtml(guide.notes.slice(0, 120))}${guide.notes.length > 120 ? "…" : ""}</div></div>`
+    : "";
 
   card.innerHTML = `
     <div class="guide-header">
@@ -3169,14 +3588,11 @@ function renderGuideCard(guide) {
         ${favicon ? `<img class="domain-favicon" src="${favicon}" alt="" loading="lazy" onerror="this.style.display='none'"/>` : ""}
         ${escapeHtml(domain)}
       </span>` : ""}
+      ${hasContent ? `<button type="button" class="read-more-btn">📖 Lire l'article</button>` : ""}
     </div>
 
     ${tagsHtml}
-
-    ${guide.notes ? `<div class="notes-box">
-      <div class="notes-title">Notes</div>
-      <div class="notes-content">${escapeHtml(guide.notes)}</div>
-    </div>` : ""}
+    ${contentPreview}
   `;
 
   // Actions
@@ -3216,7 +3632,11 @@ function renderGuideCard(guide) {
 
   card.appendChild(actions);
 
-  // Bind clicks on tag badges (filter par recherche)
+  // Bouton "Lire l'article"
+  const readBtn = card.querySelector(".read-more-btn");
+  if (readBtn) readBtn.addEventListener("click", () => openArticle(guide));
+
+  // Bind clicks on tag badges
   card.querySelectorAll(".tag-clickable").forEach(btn => {
     btn.addEventListener("click", e => {
       e.stopPropagation();
@@ -3379,9 +3799,24 @@ function renderToolbar(filtered) {
 
 function renderBuildCard(build) {
   const isOwner = state.currentUser && build.owner_id === state.currentUser.id;
+  const isFav   = isFavorite(build.id);
   const card = document.createElement("article");
   const cls = classOfTag(build.class_name);
   card.className = `card panel ${cls ? "class-" + cls : ""}`;
+
+  // Bouton étoile (favoris)
+  const favBtn = document.createElement("button");
+  favBtn.type = "button";
+  favBtn.className = `fav-btn${isFav ? " is-fav" : ""}`;
+  favBtn.setAttribute("aria-label", isFav ? "Retirer des favoris" : "Ajouter aux favoris");
+  favBtn.setAttribute("aria-pressed", isFav ? "true" : "false");
+  favBtn.title = isFav ? "Retirer des favoris" : "Ajouter aux favoris";
+  favBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="${isFav ? "#icon-star" : "#icon-star-outline"}"/></svg>`;
+  favBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    toggleFavorite(build.id, favBtn);
+  });
+  card.appendChild(favBtn);
 
   const tagsHtml = (build.tags && build.tags.length)
     ? `<div class="badges card-tags" style="margin-top:4px;">${build.tags
@@ -3548,6 +3983,13 @@ function bindEvents() {
   ui.searchInput.addEventListener("input", debouncedRender);
   ui.sortSelect.addEventListener("change", render);
 
+  // Tag chips dropdown toggle
+  ui.tagDropdownToggle.addEventListener("click", () => {
+    const open = ui.tagDropdownBody.hidden === false;
+    ui.tagDropdownBody.hidden = open;
+    ui.tagDropdownToggle.setAttribute("aria-expanded", open ? "false" : "true");
+    if (!open) setTimeout(() => ui.tagSearchInput.focus(), 80);
+  });
   // Tag chips
   ui.tagSearchInput.addEventListener("input", () => {
     state.tagSearchQuery = ui.tagSearchInput.value.trim();
@@ -3596,7 +4038,7 @@ function bindEvents() {
     }
     // Esc = close any open modal
     if (e.key === "Escape") {
-      [ui.loginModal, ui.editModal, ui.previewModal, ui.editGuideModal].forEach(m => {
+      [ui.loginModal, ui.editModal, ui.previewModal, ui.editGuideModal, ui.articleModal].forEach(m => {
         if (m && m.classList.contains("open")) closeModal(m);
       });
       return;
@@ -3607,6 +4049,9 @@ function bindEvents() {
       ui.scrollToAddBtn.click();
     }
   });
+
+  ui.closeArticleBtn.addEventListener("click", () => closeModal(ui.articleModal));
+  ui.articleModal.addEventListener("click", e => { if (e.target === ui.articleModal) closeModal(ui.articleModal); });
 
   // ====== GUIDES ======
   // Tabs
@@ -3650,6 +4095,21 @@ async function init() {
   populateSelects();
   populateGuideSelects();
   loadFavorites();
+
+  // Initialiser les éditeurs Quill avec toolbar custom en français
+  if (window.Quill) {
+    quillAdd = new Quill("#guideEditor", {
+      theme: "snow",
+      placeholder: "Rédige ton article ici…",
+      modules: { toolbar: "#toolbar-add" }
+    });
+    quillEdit = new Quill("#editGuideEditor", {
+      theme: "snow",
+      placeholder: "Rédige ton article ici…",
+      modules: { toolbar: "#toolbar-edit" }
+    });
+  }
+
   bindEvents();
   await fetchCurrentUser();
   await Promise.all([loadBuilds(), loadGuides()]);
