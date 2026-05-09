@@ -12,12 +12,19 @@
    Éditeur de guides — toolbar 100% custom en français
    ========================================================================== */
 
-/* Masquer le toolbar Quill Snow par défaut (on utilise le nôtre) */
-.ql-toolbar.ql-snow { display: none !important; }
+/* Masquer le toolbar Quill Snow par défaut (si Quill genere son propre toolbar
+   sans qu'on lui passe une ref). Notre toolbar custom (.ql-toolbar-custom) recoit
+   les classes ql-toolbar/ql-snow par Quill mais reste visible grace a la specificite. */
+.ql-toolbar.ql-snow:not(.ql-toolbar-custom) { display: none !important; }
+/* Notre toolbar custom doit rester visible meme apres que Quill l'ait modifie */
+.ql-toolbar-custom.ql-toolbar.ql-snow,
+.ql-toolbar-custom {
+  display: flex !important;
+}
 
 /* Conteneur toolbar custom */
 .ql-toolbar-custom {
-  display: flex;
+  display: flex !important;
   flex-wrap: wrap;
   gap: 4px;
   align-items: center;
@@ -206,6 +213,8 @@
   height: 100dvh;
   max-width: 1500px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* En-tete fixe */
@@ -242,14 +251,17 @@
 /* Corps : 2 colonnes */
 .guide-editor-body {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: minmax(0, 1fr) 300px;
   gap: 24px;
-  padding: 24px;
+  padding: 20px 24px;
   overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
   align-content: start;
+  width: 100%;
+  box-sizing: border-box;
 }
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .guide-editor-body {
     grid-template-columns: 1fr;
     padding: 16px;
