@@ -182,6 +182,156 @@
 .article-content strong { font-weight: 700; }
 .article-content em     { font-style: italic; }
 
+/* ==========================================================================
+   Editeur de guide plein ecran (style WordPress)
+   ========================================================================== */
+.guide-editor-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--bg-1);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s;
+  overflow: hidden;
+}
+.guide-editor-modal.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.guide-editor-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+/* En-tete fixe */
+.guide-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 24px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.guide-editor-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.guide-editor-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.guide-editor-autostatus {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+.guide-editor-autostatus.saved { color: var(--success); }
+
+/* Corps : 2 colonnes */
+.guide-editor-body {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+  align-content: start;
+}
+@media (max-width: 900px) {
+  .guide-editor-body {
+    grid-template-columns: 1fr;
+    padding: 16px;
+    gap: 16px;
+  }
+}
+
+/* Colonne principale */
+.guide-editor-main {
+  min-width: 0;
+}
+
+/* Titre en grand (style WordPress) */
+.guide-editor-title-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  padding: 8px 0;
+  color: var(--text);
+  font-family: inherit;
+  margin-bottom: 4px;
+}
+.guide-editor-title-input:focus {
+  outline: none;
+  border-bottom-color: var(--blue);
+  box-shadow: none;
+}
+.guide-editor-title-input::placeholder {
+  color: var(--muted-2);
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* L'editeur Quill prend de la place */
+#ge-editor.ql-container {
+  min-height: calc(100vh - 380px);
+  font-size: 15px;
+}
+#ge-editor .ql-editor {
+  min-height: calc(100vh - 380px);
+  padding: 18px 20px;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* Colonne metadonnees a droite */
+.guide-editor-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ge-side-section {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+.ge-side-section h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ge-side-section input,
+.ge-side-section select {
+  width: 100%;
+  font-size: 13px;
+}
+.ge-side-section .qtb-hint {
+  margin: 6px 0 0;
+}
+
 /* Bouton "Lire l'article" dans les cartes guide */
 .read-more-btn {
   background: none;
@@ -1887,59 +2037,6 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
       <!-- Sidebar Guides -->
       <aside class="sidebar">
 
-        <!-- Add guide (visible only when logged in) -->
-        <section class="panel section hidden" id="addGuideSection">
-          <h2>Ajouter un guide</h2>
-          <div class="grid-fields">
-            <input id="guideTitle" type="text" placeholder="Titre du guide" />
-            <select id="guideCategory" aria-label="Catégorie"></select>
-            <input id="guideDescription" type="text" placeholder="Description courte (optionnel)" />
-            <input id="guideLink" type="text" placeholder="Lien externe (YouTube, wiki, Discord...)" />
-            <input id="guideTags" type="text" placeholder="Tags (séparés par des virgules)" />
-            <div>
-              <label style="font-size:12px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:6px;">Article / Notes</label>
-              <div id="guideEditorContainer">
-                <!-- Toolbar custom en français -->
-                <div id="toolbar-add" class="ql-toolbar-custom">
-                  <span class="qtb-group">
-                    <button type="button" class="ql-header qtb-btn qtb-wide" value="2" title="Titre principal">📌 Titre</button>
-                    <button type="button" class="ql-header qtb-btn qtb-wide" value="3" title="Sous-titre">📎 Sous-titre</button>
-                  </span>
-                  <span class="qtb-sep"></span>
-                  <span class="qtb-group">
-                    <button type="button" class="ql-bold  qtb-btn" title="Gras (Ctrl+B)"><strong>G</strong></button>
-                    <button type="button" class="ql-italic qtb-btn" title="Italique (Ctrl+I)"><em>I</em></button>
-                    <button type="button" class="ql-underline qtb-btn" title="Souligné (Ctrl+U)"><u>S</u></button>
-                    <button type="button" class="ql-strike  qtb-btn" title="Barré"><s>B̶</s></button>
-                  </span>
-                  <span class="qtb-sep"></span>
-                  <span class="qtb-group">
-                    <button type="button" class="ql-list qtb-btn qtb-wide" value="bullet"  title="Liste à puces">• Liste</button>
-                    <button type="button" class="ql-list qtb-btn qtb-wide" value="ordered" title="Liste numérotée">1. Liste</button>
-                  </span>
-                  <span class="qtb-sep"></span>
-                  <span class="qtb-group">
-                    <button type="button" class="ql-blockquote qtb-btn qtb-wide" title="Citation en retrait">❝ Citation</button>
-                  </span>
-                  <span class="qtb-sep"></span>
-                  <span class="qtb-group">
-                    <button type="button" class="ql-link  qtb-btn qtb-wide" title="Insérer un lien">🔗 Lien</button>
-                    <button type="button" class="ql-image qtb-btn qtb-wide" title="Insérer une image">🖼 Image</button>
-                  </span>
-                  <span class="qtb-sep"></span>
-                  <span class="qtb-group">
-                    <button type="button" class="ql-clean qtb-btn qtb-wide" title="Supprimer la mise en forme">✕ Effacer style</button>
-                  </span>
-                </div>
-                <div id="guideEditor"></div>
-              </div>
-              <p class="qtb-hint">💡 Sélectionne du texte puis clique sur un bouton pour le mettre en forme. Pour insérer une image, clique sur 🖼 Image.</p>
-            </div>
-            <button id="addGuideBtn" type="button">Ajouter</button>
-          </div>
-          <div id="guideStatusMessage" class="status" role="status" aria-live="polite"></div>
-        </section>
-
         <!-- Filters Guides -->
         <section class="panel section">
           <h2>Filtres</h2>
@@ -1993,7 +2090,15 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
             <h2>Tous les guides</h2>
             <p id="guideToolbarText">Chargement...</p>
           </div>
-          <div id="guideActivePills" class="pills"></div>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <div id="guideActivePills" class="pills"></div>
+            <button id="newGuideBtn" type="button" class="hidden">
+              <svg width="14" height="14" viewBox="0 0 24 24" style="margin-right:4px;">
+                <path d="M12 5 V19 M5 12 H19" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              </svg>
+              Nouveau guide
+            </button>
+          </div>
         </section>
 
         <section id="guideList" class="build-grid" aria-live="polite">
@@ -2114,63 +2219,113 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
   </div>
 </div>
 
-<!-- Guide edit modal -->
-<div id="editGuideModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editGuideTitle">
-  <div class="modal-box">
-    <div class="modal-head">
-      <div>
-        <h3 id="editGuideTitle">Modifier le guide</h3>
-        <p>Titre, catégorie, lien, tags et notes.</p>
-      </div>
-      <button id="closeEditGuideModalBtn" type="button" class="btn-ghost" aria-label="Fermer">✕</button>
-    </div>
-    <div class="grid-fields">
-      <input id="editGuideTitleInput" type="text" placeholder="Titre" />
-      <select id="editGuideCategory" aria-label="Catégorie"></select>
-      <input id="editGuideDescription" type="text" placeholder="Description courte" />
-      <input id="editGuideLink" type="text" placeholder="Lien externe" />
-      <input id="editGuideTags" type="text" placeholder="Tags (séparés par virgules)" />
-      <div>
-        <label style="font-size:12px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:6px;">Article / Notes</label>
-        <div id="editGuideEditorContainer">
-          <div id="toolbar-edit" class="ql-toolbar-custom">
-            <span class="qtb-group">
-              <button type="button" class="ql-header qtb-btn qtb-wide" value="2" title="Titre">📌 Titre</button>
-              <button type="button" class="ql-header qtb-btn qtb-wide" value="3" title="Sous-titre">📎 Sous-titre</button>
-            </span>
-            <span class="qtb-sep"></span>
-            <span class="qtb-group">
-              <button type="button" class="ql-bold     qtb-btn" title="Gras"><strong>G</strong></button>
-              <button type="button" class="ql-italic   qtb-btn" title="Italique"><em>I</em></button>
-              <button type="button" class="ql-underline qtb-btn" title="Souligné"><u>S</u></button>
-              <button type="button" class="ql-strike   qtb-btn" title="Barré"><s>B̶</s></button>
-            </span>
-            <span class="qtb-sep"></span>
-            <span class="qtb-group">
-              <button type="button" class="ql-list qtb-btn qtb-wide" value="bullet"  title="Liste à puces">• Liste</button>
-              <button type="button" class="ql-list qtb-btn qtb-wide" value="ordered" title="Liste numérotée">1. Liste</button>
-            </span>
-            <span class="qtb-sep"></span>
-            <span class="qtb-group">
-              <button type="button" class="ql-blockquote qtb-btn qtb-wide" title="Citation">❝ Citation</button>
-            </span>
-            <span class="qtb-sep"></span>
-            <span class="qtb-group">
-              <button type="button" class="ql-link  qtb-btn qtb-wide" title="Lien">🔗 Lien</button>
-              <button type="button" class="ql-image qtb-btn qtb-wide" title="Image">🖼 Image</button>
-            </span>
-            <span class="qtb-sep"></span>
-            <span class="qtb-group">
-              <button type="button" class="ql-clean qtb-btn qtb-wide" title="Effacer le style">✕ Effacer style</button>
-            </span>
-          </div>
-          <div id="editGuideEditor"></div>
+<!-- Guide editor modal (WordPress-like, plein ecran) -->
+<div id="guideEditorModal" class="guide-editor-modal" role="dialog" aria-modal="true" aria-labelledby="guideEditorTitle">
+  <div class="guide-editor-shell">
+
+    <!-- En-tete fixe en haut -->
+    <header class="guide-editor-header">
+      <div class="guide-editor-header-left">
+        <button id="closeGuideEditorBtn" type="button" class="icon-btn" aria-label="Fermer (Esc)" title="Fermer">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path d="M19 12 H5 M12 5 L5 12 L12 19" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div>
+          <h2 id="guideEditorTitle" style="margin:0; font-size:17px; letter-spacing:-0.01em;">Nouveau guide</h2>
+          <p id="guideEditorSubtitle" style="margin:2px 0 0; font-size:12px; color:var(--muted);">Rédige librement ton article</p>
         </div>
-        <p class="qtb-hint">💡 Sélectionne du texte puis clique sur un bouton pour le mettre en forme.</p>
       </div>
-      <button id="saveEditGuideBtn" type="button">Enregistrer</button>
+      <div class="guide-editor-header-right">
+        <span id="guideEditorAutoStatus" class="guide-editor-autostatus"></span>
+        <button id="cancelGuideEditorBtn" type="button" class="btn-secondary">Annuler</button>
+        <button id="saveGuideEditorBtn" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" style="margin-right:4px;"><path d="M5 12 L10 17 L19 7" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="saveGuideEditorBtnLabel">Publier</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Corps : titre + editeur a gauche, panneau metadonnees a droite -->
+    <div class="guide-editor-body">
+
+      <!-- Colonne principale : titre + editeur riche -->
+      <div class="guide-editor-main">
+        <input id="guideEditorTitleInput" type="text" class="guide-editor-title-input"
+               placeholder="Titre de l'article..." aria-label="Titre" maxlength="120" />
+
+        <p id="guideEditorTitleHint" class="qtb-hint" style="margin: 0 0 14px;">
+          ✍️ Donne un titre clair à ton article — il apparaîtra en haut de la carte.
+        </p>
+
+        <!-- Toolbar custom français -->
+        <div id="ge-toolbar" class="ql-toolbar-custom">
+          <span class="qtb-group">
+            <button type="button" class="ql-header qtb-btn qtb-wide" value="2" title="Grand titre dans l'article">📌 Titre</button>
+            <button type="button" class="ql-header qtb-btn qtb-wide" value="3" title="Sous-titre">📎 Sous-titre</button>
+          </span>
+          <span class="qtb-sep"></span>
+          <span class="qtb-group">
+            <button type="button" class="ql-bold      qtb-btn" title="Gras (Ctrl+B)"><strong>G</strong></button>
+            <button type="button" class="ql-italic    qtb-btn" title="Italique (Ctrl+I)"><em>I</em></button>
+            <button type="button" class="ql-underline qtb-btn" title="Souligné (Ctrl+U)"><u>S</u></button>
+            <button type="button" class="ql-strike    qtb-btn" title="Barré"><s>B̶</s></button>
+          </span>
+          <span class="qtb-sep"></span>
+          <span class="qtb-group">
+            <button type="button" class="ql-list qtb-btn qtb-wide" value="bullet"  title="Liste à puces">• Liste</button>
+            <button type="button" class="ql-list qtb-btn qtb-wide" value="ordered" title="Liste numérotée">1. Liste</button>
+          </span>
+          <span class="qtb-sep"></span>
+          <span class="qtb-group">
+            <button type="button" class="ql-blockquote qtb-btn qtb-wide" title="Citation en retrait">❝ Citation</button>
+          </span>
+          <span class="qtb-sep"></span>
+          <span class="qtb-group">
+            <button type="button" class="ql-link  qtb-btn qtb-wide" title="Insérer un lien cliquable">🔗 Lien</button>
+            <button type="button" class="ql-image qtb-btn qtb-wide" title="Insérer une image depuis ton ordinateur">🖼 Image</button>
+          </span>
+          <span class="qtb-sep"></span>
+          <span class="qtb-group">
+            <button type="button" class="ql-clean qtb-btn qtb-wide" title="Supprimer toute la mise en forme">✕ Effacer style</button>
+          </span>
+        </div>
+
+        <div id="ge-editor"></div>
+
+        <p class="qtb-hint" style="margin-top:8px;">
+          💡 Sélectionne du texte puis clique sur un bouton pour le mettre en forme.
+          Pour insérer une image, clique sur 🖼 Image et choisis un fichier.
+        </p>
+      </div>
+
+      <!-- Colonne droite : metadonnees (comme WordPress) -->
+      <aside class="guide-editor-side">
+
+        <div class="ge-side-section">
+          <h4>📂 Catégorie</h4>
+          <select id="ge-category" aria-label="Catégorie"></select>
+        </div>
+
+        <div class="ge-side-section">
+          <h4>🏷️ Tags</h4>
+          <input id="ge-tags" type="text" placeholder="DPS, mythic, lvl100..." />
+          <p class="qtb-hint">Sépare les tags par des virgules.</p>
+        </div>
+
+        <div class="ge-side-section">
+          <h4>🔗 Lien externe</h4>
+          <input id="ge-link" type="text" placeholder="https://youtube.com/..." />
+          <p class="qtb-hint">URL vers une vidéo, un wiki, un Discord, etc.</p>
+        </div>
+
+        <div class="ge-side-section">
+          <h4>📝 Description courte</h4>
+          <input id="ge-description" type="text" placeholder="Résumé en 1-2 phrases (optionnel)" maxlength="200" />
+          <p class="qtb-hint">Affiché en haut de la carte du guide.</p>
+        </div>
+
+        <div id="ge-status" class="status" role="status" aria-live="polite"></div>
+      </aside>
     </div>
-    <div id="editGuideStatus" class="status" role="status" aria-live="polite"></div>
   </div>
 </div>
 
@@ -2182,8 +2337,7 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 // Instances des editeurs Quill (initialisees dans init())
-let quillAdd  = null;
-let quillEdit = null;
+let quillEditor = null;   // Editeur unique pour creer/modifier un guide
 
 // =============================================================================
 // CONFIGURATION
@@ -2304,13 +2458,22 @@ const ui = {
   tabCountBuilds: $("tabCountBuilds"), tabCountGuides: $("tabCountGuides"),
   viewBuilds: $("viewBuilds"), viewGuides: $("viewGuides"),
 
-  // Guide form
-  addGuideSection: $("addGuideSection"),
-  guideTitle: $("guideTitle"), guideCategory: $("guideCategory"),
-  guideDescription: $("guideDescription"), guideLink: $("guideLink"),
-  guideTags: $("guideTags"),
-  addGuideBtn: $("addGuideBtn"),
-  guideStatusMessage: $("guideStatusMessage"),
+  // Guide editor (modale plein ecran, creation + edition)
+  newGuideBtn: $("newGuideBtn"),
+  guideEditorModal: $("guideEditorModal"),
+  guideEditorTitle: $("guideEditorTitle"),
+  guideEditorSubtitle: $("guideEditorSubtitle"),
+  guideEditorTitleInput: $("guideEditorTitleInput"),
+  geCategory: $("ge-category"),
+  geTags: $("ge-tags"),
+  geLink: $("ge-link"),
+  geDescription: $("ge-description"),
+  geStatus: $("ge-status"),
+  saveGuideEditorBtn: $("saveGuideEditorBtn"),
+  saveGuideEditorBtnLabel: $("saveGuideEditorBtnLabel"),
+  cancelGuideEditorBtn: $("cancelGuideEditorBtn"),
+  closeGuideEditorBtn: $("closeGuideEditorBtn"),
+  guideEditorAutoStatus: $("guideEditorAutoStatus"),
 
   // Guide filters
   guideSearchInput: $("guideSearchInput"),
@@ -2327,17 +2490,6 @@ const ui = {
   statGuidesTotal: $("statGuidesTotal"),
   statGuidesFiltered: $("statGuidesFiltered"),
   statGuidesCategories: $("statGuidesCategories"),
-
-  // Guide edit modal
-  editGuideModal: $("editGuideModal"),
-  editGuideTitleInput: $("editGuideTitleInput"),
-  editGuideCategory: $("editGuideCategory"),
-  editGuideDescription: $("editGuideDescription"),
-  editGuideLink: $("editGuideLink"),
-  editGuideTags: $("editGuideTags"),
-  saveEditGuideBtn: $("saveEditGuideBtn"),
-  closeEditGuideModalBtn: $("closeEditGuideModalBtn"),
-  editGuideStatus: $("editGuideStatus"),
 
   // Article reader modal
   articleModal: $("articleModal"),
@@ -2548,7 +2700,7 @@ function updateAuthUI() {
   ui.scrollToAddBtn.classList.toggle("hidden", !loggedIn);
   ui.addSection.classList.toggle("hidden", !loggedIn);
   ui.importBtn.classList.toggle("hidden", !loggedIn);
-  if (ui.addGuideSection) ui.addGuideSection.classList.toggle("hidden", !loggedIn);
+  if (ui.newGuideBtn) ui.newGuideBtn.classList.toggle("hidden", !loggedIn);
 }
 
 async function fetchCurrentUser() {
@@ -3304,75 +3456,150 @@ async function loadGuides() {
   renderGuides();
 }
 
-async function addGuide() {
+// =============================================================================
+// GUIDES — Editeur unifie (creation + edition)
+// =============================================================================
+
+/**
+ * Ouvre la modale plein ecran. Si guide est null -> creation, sinon -> edition.
+ */
+function openGuideEditor(guide = null) {
+  if (!state.currentUser) {
+    toast("Connecte-toi pour créer un guide", "error");
+    return;
+  }
+  state.editingGuideId = guide ? guide.id : null;
+
+  // Pre-remplir
+  ui.guideEditorTitleInput.value = guide?.title || "";
+  ui.geCategory.value = guide?.category || "Autre";
+  ui.geTags.value = guide ? tagsToString(guide.tags) : "";
+  ui.geLink.value = guide?.link || "";
+  ui.geDescription.value = guide?.description || "";
+  ui.geStatus.textContent = "";
+  ui.geStatus.className = "status";
+  ui.guideEditorAutoStatus.textContent = "";
+
+  // Adapter les libelles
+  if (guide) {
+    ui.guideEditorTitle.textContent = "Modifier le guide";
+    ui.guideEditorSubtitle.textContent = guide.title;
+    ui.saveGuideEditorBtnLabel.textContent = "Enregistrer";
+  } else {
+    ui.guideEditorTitle.textContent = "Nouveau guide";
+    ui.guideEditorSubtitle.textContent = "Rédige librement ton article";
+    ui.saveGuideEditorBtnLabel.textContent = "Publier";
+  }
+
+  // Charger le contenu Quill
+  if (quillEditor) {
+    if (guide?.content) {
+      quillEditor.root.innerHTML = guide.content;
+    } else if (guide?.notes) {
+      quillEditor.setText(guide.notes);
+    } else {
+      quillEditor.setText("");
+    }
+  }
+
+  // Ouvrir
+  ui.guideEditorModal.classList.add("open");
+  document.body.style.overflow = "hidden"; // empecher scroll arriere
+  setTimeout(() => ui.guideEditorTitleInput.focus(), 80);
+}
+
+function closeGuideEditor() {
+  ui.guideEditorModal.classList.remove("open");
+  document.body.style.overflow = "";
+  state.editingGuideId = null;
+}
+
+/**
+ * Ferme l'editeur en demandant confirmation s'il y a du contenu non vide
+ * et qu'on est en mode creation (pas de risque pour les modifications,
+ * elles sont sauvegardees explicitement de toute facon).
+ */
+function confirmCloseGuideEditor() {
+  const title = ui.guideEditorTitleInput.value.trim();
+  const text  = quillEditor ? quillEditor.getText().trim() : "";
+  const hasContent = title || text;
+  // Pas de confirmation si rien n'est rempli
+  if (!hasContent) {
+    closeGuideEditor();
+    return;
+  }
+  if (confirm("Fermer sans sauvegarder ?\n\nLes modifications seront perdues.")) {
+    closeGuideEditor();
+  }
+}
+
+/**
+ * Sauvegarde : creation ou modification selon state.editingGuideId.
+ */
+async function saveGuideFromEditor() {
   if (!state.currentUser || !state.currentSession) {
-    showStatus(ui.guideStatusMessage, "Tu dois être connecté.", "error");
+    showStatus(ui.geStatus, "Tu dois être connecté.", "error");
     return;
   }
 
-  const title = ui.guideTitle.value.trim();
-  const category = ui.guideCategory.value;
-  const description = ui.guideDescription.value.trim();
-  const link = ui.guideLink.value.trim();
-  const tags = parseTags(ui.guideTags.value);
-  const notes = quillAdd ? quillAdd.getText().trim() : "";
-  const content = quillAdd ? quillAdd.root.innerHTML : "";
+  const title = ui.guideEditorTitleInput.value.trim();
+  const category = ui.geCategory.value;
+  const description = ui.geDescription.value.trim();
+  const link = ui.geLink.value.trim();
+  const tags = parseTags(ui.geTags.value);
+  const notes = quillEditor ? quillEditor.getText().trim() : "";
+  const content = quillEditor ? quillEditor.root.innerHTML : "";
 
-  if (!title) { showStatus(ui.guideStatusMessage, "Titre requis.", "error"); return; }
-  if (!link)  { showStatus(ui.guideStatusMessage, "Lien requis.", "error"); return; }
-
-  // Validation lien (juste http/https)
+  if (!title) {
+    showStatus(ui.geStatus, "Donne un titre à ton guide avant de publier.", "error");
+    ui.guideEditorTitleInput.focus();
+    return;
+  }
+  if (!link) {
+    showStatus(ui.geStatus, "Le lien externe est obligatoire (YouTube, wiki, Discord...).", "error");
+    ui.geLink.focus();
+    return;
+  }
   try {
     const url = new URL(link);
     if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error();
   } catch {
-    showStatus(ui.guideStatusMessage, "Lien invalide. Utilise une URL complète (https://...).", "error");
+    showStatus(ui.geStatus, "Lien invalide. Utilise une URL complète (https://...).", "error");
+    ui.geLink.focus();
     return;
   }
 
-  ui.addGuideBtn.disabled = true;
-  const payload = {
-    title, category, description, link, notes, content, tags,
-    owner_id: state.currentUser.id
-  };
-  const { error } = await supabase.from("guides").insert(payload);
-  ui.addGuideBtn.disabled = false;
+  const payload = { title, category, description, link, notes, content, tags };
+  ui.saveGuideEditorBtn.disabled = true;
+  ui.guideEditorAutoStatus.textContent = "Sauvegarde...";
+  ui.guideEditorAutoStatus.classList.remove("saved");
 
-  if (error) {
-    showStatus(ui.guideStatusMessage, "Erreur ajout : " + error.message, "error");
-    return;
+  try {
+    if (state.editingGuideId) {
+      // Modification
+      const { error } = await supabase
+        .from("guides")
+        .update(payload)
+        .eq("id", state.editingGuideId);
+      if (error) throw error;
+      toast("Guide modifié.", "success");
+    } else {
+      // Creation
+      payload.owner_id = state.currentUser.id;
+      const { error } = await supabase.from("guides").insert(payload);
+      if (error) throw error;
+      toast("Guide publié.", "success");
+    }
+    ui.guideEditorAutoStatus.textContent = "Enregistré ✓";
+    ui.guideEditorAutoStatus.classList.add("saved");
+    setTimeout(() => closeGuideEditor(), 600);
+    await loadGuides();
+  } catch (err) {
+    showStatus(ui.geStatus, "Erreur : " + (err.message || "inconnue"), "error");
+    ui.guideEditorAutoStatus.textContent = "";
+  } finally {
+    ui.saveGuideEditorBtn.disabled = false;
   }
-
-  ui.guideTitle.value = ""; ui.guideDescription.value = "";
-  ui.guideLink.value = ""; ui.guideTags.value = "";
-  if (quillAdd) quillAdd.setText("");
-  showStatus(ui.guideStatusMessage, "Guide ajouté avec succès.", "success");
-  toast("Guide ajouté.", "success");
-  await loadGuides();
-}
-
-async function saveEditGuide() {
-  if (!state.currentUser || !state.editingGuideId) return;
-  const payload = {
-    title: ui.editGuideTitleInput.value.trim(),
-    category: ui.editGuideCategory.value,
-    description: ui.editGuideDescription.value.trim(),
-    link: ui.editGuideLink.value.trim(),
-    tags: parseTags(ui.editGuideTags.value),
-    notes: quillEdit ? quillEdit.getText().trim() : "",
-    content: quillEdit ? quillEdit.root.innerHTML : ""
-  };
-  if (!payload.title) { showStatus(ui.editGuideStatus, "Titre requis.", "error"); return; }
-  if (!payload.link)  { showStatus(ui.editGuideStatus, "Lien requis.", "error"); return; }
-
-  ui.saveEditGuideBtn.disabled = true;
-  const { error } = await supabase.from("guides").update(payload).eq("id", state.editingGuideId);
-  ui.saveEditGuideBtn.disabled = false;
-
-  if (error) { showStatus(ui.editGuideStatus, "Modif impossible : " + error.message, "error"); return; }
-  closeModal(ui.editGuideModal);
-  toast("Guide modifié.", "success");
-  await loadGuides();
 }
 
 async function deleteGuide(id, title) {
@@ -3384,28 +3611,6 @@ async function deleteGuide(id, title) {
   await loadGuides();
 }
 
-function openEditGuideModal(guide) {
-  state.editingGuideId = guide.id;
-  ui.editGuideTitleInput.value = guide.title || "";
-  ui.editGuideCategory.value = guide.category || "Autre";
-  ui.editGuideDescription.value = guide.description || "";
-  ui.editGuideLink.value = guide.link || "";
-  ui.editGuideTags.value = tagsToString(guide.tags);
-  ui.editGuideStatus.textContent = "";
-
-  // Charger le contenu dans Quill
-  if (quillEdit) {
-    if (guide.content) {
-      quillEdit.root.innerHTML = guide.content;
-    } else if (guide.notes) {
-      // Rétrocompatibilité : anciens guides avec textarea
-      quillEdit.setText(guide.notes);
-    } else {
-      quillEdit.setText("");
-    }
-  }
-  openModal(ui.editGuideModal);
-}
 
 // =============================================================================
 // GUIDES — RENDER
@@ -3619,7 +3824,7 @@ function renderGuideCard(guide) {
     editBtn.type = "button";
     editBtn.className = "btn-secondary";
     editBtn.textContent = "Modifier";
-    editBtn.addEventListener("click", () => openEditGuideModal(guide));
+    editBtn.addEventListener("click", () => openGuideEditor(guide));
     actions.appendChild(editBtn);
 
     const delBtn = document.createElement("button");
@@ -3736,17 +3941,16 @@ function renderGuides() {
 // GUIDES — POPULATION DES SELECTS
 // =============================================================================
 function populateGuideSelects() {
-  // Form add + edit
-  [ui.guideCategory, ui.editGuideCategory].forEach(sel => {
-    if (!sel) return;
-    sel.innerHTML = "";
+  // Categorie dans la modale d'edition (un seul select)
+  if (ui.geCategory) {
+    ui.geCategory.innerHTML = "";
     GUIDE_CATEGORIES.forEach(c => {
       const o = document.createElement("option");
       o.value = c.value; o.textContent = c.label;
-      sel.appendChild(o);
+      ui.geCategory.appendChild(o);
     });
-  });
-  // Filter
+  }
+  // Filter en sidebar
   ui.guideFilterCategory.innerHTML = '<option value="all">Toutes les catégories</option>';
   GUIDE_CATEGORIES.forEach(c => {
     const o = document.createElement("option");
@@ -4038,7 +4242,12 @@ function bindEvents() {
     }
     // Esc = close any open modal
     if (e.key === "Escape") {
-      [ui.loginModal, ui.editModal, ui.previewModal, ui.editGuideModal, ui.articleModal].forEach(m => {
+      // Si l'editeur de guide est ouvert -> demander confirmation
+      if (ui.guideEditorModal.classList.contains("open")) {
+        confirmCloseGuideEditor();
+        return;
+      }
+      [ui.loginModal, ui.editModal, ui.previewModal, ui.articleModal].forEach(m => {
         if (m && m.classList.contains("open")) closeModal(m);
       });
       return;
@@ -4058,13 +4267,11 @@ function bindEvents() {
   ui.tabBuilds.addEventListener("click", () => switchView("builds"));
   ui.tabGuides.addEventListener("click", () => switchView("guides"));
 
-  // Add guide
-  ui.addGuideBtn.addEventListener("click", addGuide);
-
-  // Edit guide
-  ui.saveEditGuideBtn.addEventListener("click", saveEditGuide);
-  ui.closeEditGuideModalBtn.addEventListener("click", () => closeModal(ui.editGuideModal));
-  ui.editGuideModal.addEventListener("click", e => { if (e.target === ui.editGuideModal) closeModal(ui.editGuideModal); });
+  // Editeur de guide plein ecran (creation + edition)
+  ui.newGuideBtn.addEventListener("click", () => openGuideEditor());
+  ui.saveGuideEditorBtn.addEventListener("click", saveGuideFromEditor);
+  ui.cancelGuideEditorBtn.addEventListener("click", confirmCloseGuideEditor);
+  ui.closeGuideEditorBtn.addEventListener("click", confirmCloseGuideEditor);
 
   // Filters guides
   ui.guideSearchInput.addEventListener("input", () => {
@@ -4096,17 +4303,12 @@ async function init() {
   populateGuideSelects();
   loadFavorites();
 
-  // Initialiser les éditeurs Quill avec toolbar custom en français
+  // Initialiser l'editeur Quill (creation + edition partagent la meme instance)
   if (window.Quill) {
-    quillAdd = new Quill("#guideEditor", {
+    quillEditor = new Quill("#ge-editor", {
       theme: "snow",
-      placeholder: "Rédige ton article ici…",
-      modules: { toolbar: "#toolbar-add" }
-    });
-    quillEdit = new Quill("#editGuideEditor", {
-      theme: "snow",
-      placeholder: "Rédige ton article ici…",
-      modules: { toolbar: "#toolbar-edit" }
+      placeholder: "Rédige ton article ici…\n\nUtilise les boutons ci-dessus pour mettre en forme : titres, gras, liens, images, listes…",
+      modules: { toolbar: "#ge-toolbar" }
     });
   }
 
