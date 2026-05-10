@@ -53,15 +53,15 @@
 
 /* Bouton standard */
 .qtb-btn {
-  height: 32px;
-  min-width: 32px;
-  padding: 0 8px;
-  border-radius: 7px;
-  background: transparent;
-  border: 1px solid transparent;
+  height: 34px;
+  min-width: 34px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
   color: var(--text);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 12.5px;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -72,25 +72,60 @@
   transform: none !important;
   box-shadow: none !important;
   font-family: inherit;
+  line-height: 1;
 }
 .qtb-btn:hover {
-  background: var(--bg-2);
-  border-color: var(--border);
+  background: var(--blue-glow);
+  border-color: var(--blue);
   color: var(--blue);
 }
 /* État actif quand Quill active le format */
 .qtb-btn.ql-active {
-  background: var(--blue-glow);
-  border-color: var(--blue);
-  color: var(--blue);
-  font-weight: 700;
+  background: linear-gradient(135deg, var(--blue), var(--blue-2));
+  color: #fff;
+  border-color: var(--blue-2);
+  box-shadow: 0 2px 6px var(--blue-glow) !important;
+}
+.qtb-btn.ql-active:hover {
+  opacity: 0.9;
 }
 
-/* Bouton large (avec libellé) */
-.qtb-wide { padding: 0 10px; }
+/* Quill injecte ses SVG dans les boutons — on les masque si on a notre label */
+.qtb-btn svg.ql-stroke,
+.qtb-btn .ql-stroke,
+.qtb-btn .ql-fill,
+.qtb-btn svg:not([viewBox]) {
+  display: none !important;
+}
+
+/* Bouton large (avec libellé texte) */
+.qtb-wide { padding: 0 12px; }
+
+/* Indicateur visuel "glisse tes images ici" */
+.ql-editor.drag-over {
+  background: var(--blue-glow) !important;
+  outline: 2px dashed var(--blue);
+  outline-offset: -4px;
+}
+.ql-editor.drag-over::after {
+  content: "📷 Lâche l'image ici...";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(59, 130, 246, .08);
+  color: var(--blue);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  border-radius: 0 0 10px 10px;
+  z-index: 5;
+}
 
 /* Zone de saisie Quill */
 .ql-container.ql-snow {
+  position: relative;
   border: 1px solid var(--border) !important;
   border-top: none !important;
   border-radius: 0 0 10px 10px;
@@ -106,6 +141,7 @@
   line-height: 1.65;
   min-height: 180px;
   padding: 14px 16px;
+  position: relative;
 }
 .ql-editor.ql-blank::before {
   color: var(--muted-2);
@@ -131,7 +167,96 @@
   color: var(--muted);
 }
 .ql-editor a         { color: var(--blue); text-decoration: underline; }
-.ql-editor img       { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; }
+/* Images dans l'editeur : interactives (draggable + resizable) */
+.ql-editor img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 8px 0;
+  display: block;
+  cursor: grab;
+  transition: outline-color .12s;
+  outline: 2px solid transparent;
+  outline-offset: 3px;
+}
+.ql-editor img:hover { outline-color: var(--blue); }
+.ql-editor img.dragging { opacity: 0.4; cursor: grabbing; }
+.ql-editor img.selected-img {
+  outline-color: var(--blue);
+  box-shadow: 0 0 0 1px var(--blue), 0 8px 24px rgba(59,130,246,.25);
+}
+
+/* Resize handles (poignees aux coins) */
+.img-resize-overlay {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+  outline: 2px solid var(--blue);
+  border-radius: 8px;
+}
+.img-resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--blue);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  pointer-events: auto;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+.img-resize-handle.nw { top: -7px; left: -7px;     cursor: nwse-resize; }
+.img-resize-handle.ne { top: -7px; right: -7px;    cursor: nesw-resize; }
+.img-resize-handle.sw { bottom: -7px; left: -7px;  cursor: nesw-resize; }
+.img-resize-handle.se { bottom: -7px; right: -7px; cursor: nwse-resize; }
+
+/* Indicateur de drop entre 2 paragraphes pendant qu'on deplace une image */
+.img-drop-indicator {
+  height: 3px;
+  background: var(--blue);
+  border-radius: 2px;
+  margin: 6px 0;
+  box-shadow: 0 0 12px var(--blue);
+  animation: indicatorPulse .8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes indicatorPulse {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+
+/* Toolbar contextuel quand une image est selectionnee */
+.img-context-toolbar {
+  position: absolute;
+  display: flex;
+  gap: 2px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: var(--shadow);
+  z-index: 11;
+  white-space: nowrap;
+}
+.img-context-toolbar button {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  background: transparent;
+  color: var(--text);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.img-context-toolbar button:hover { background: var(--panel-2); color: var(--blue); }
+.img-context-toolbar button.danger:hover { background: rgba(239,68,68,.15); color: var(--danger); }
+.img-context-toolbar .toolbar-sep { width: 1px; background: var(--border); margin: 4px 2px; }
+
+/* Alignement images */
+.ql-editor img.img-align-left   { margin-right: auto; margin-left: 0; }
+.ql-editor img.img-align-center { margin-left: auto; margin-right: auto; }
+.ql-editor img.img-align-right  { margin-left: auto; margin-right: 0; }
 
 /* Popup Quill (lien) — adapter au thème */
 .ql-tooltip {
@@ -2196,6 +2321,7 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
         <a id="previewOpenBtn" class="button-link" href="#" target="_blank" rel="noopener noreferrer">
           🔗 Ouvrir dans WynnBuilder
         </a>
+        <button id="previewShareBtn" type="button" class="btn-secondary">📤 Partager ce build</button>
         <button id="previewTryEmbedBtn" type="button" class="btn-secondary">Tenter intégration</button>
       </div>
 
@@ -2221,6 +2347,7 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
         <p id="articleSubtitle" style="margin: 4px 0 0; font-size: 13px; color: var(--muted);"></p>
       </div>
       <div style="display:flex; gap:6px;">
+        <button id="articleShareBtn" type="button" class="btn-secondary" style="font-size:13px;">📤 Partager</button>
         <a id="articleOpenLink" class="button-link btn-secondary" href="#" target="_blank" rel="noopener noreferrer" style="font-size:13px;">
           <svg width="13" height="13" viewBox="0 0 24 24"><use href="#icon-external"/></svg>Ouvrir
         </a>
@@ -2303,9 +2430,9 @@ button.btn-ghost:hover { color: var(--text); border-color: var(--border-strong);
 
         <div id="ge-editor"></div>
 
-        <p class="qtb-hint" style="margin-top:8px;">
-          💡 Sélectionne du texte puis clique sur un bouton pour le mettre en forme.
-          Pour insérer une image, clique sur 🖼 Image et choisis un fichier.
+        <p class="qtb-hint" style="margin-top:8px; line-height: 1.7;">
+          💡 <strong>Texte</strong> : sélectionne puis clique sur un bouton pour mettre en forme.<br>
+          🖼 <strong>Images</strong> : <strong>glisse-les</strong> depuis ton ordi, <strong>colle-les</strong> (Ctrl+V), ou utilise le bouton 🖼 Image. <strong>Clique</strong> sur une image pour la déplacer, redimensionner, aligner ou supprimer.
         </p>
       </div>
 
@@ -2460,6 +2587,7 @@ const ui = {
   previewNotes: $("previewNotes"), previewOpenBtn: $("previewOpenBtn"),
   previewTryEmbedBtn: $("previewTryEmbedBtn"), previewEmbedBlock: $("previewEmbedBlock"),
   previewFrame: $("previewFrame"), copyHashBtn: $("copyHashBtn"),
+  previewShareBtn: $("previewShareBtn"),
   closePreviewBtn: $("closePreviewBtn"),
 
   exportBtn: $("exportBtn"), importBtn: $("importBtn"), importFile: $("importFile"),
@@ -2509,6 +2637,7 @@ const ui = {
   articleSubtitle: $("articleSubtitle"),
   articleContent: $("articleContent"),
   articleOpenLink: $("articleOpenLink"),
+  articleShareBtn: $("articleShareBtn"),
   closeArticleBtn: $("closeArticleBtn"),
 };
 
@@ -2572,6 +2701,296 @@ function parseTags(raw) {
 
 function tagsToString(arr) {
   return Array.isArray(arr) ? arr.join(", ") : (arr || "");
+}
+
+/**
+ * Insere une image dans l'editeur Quill en base64.
+ * Utilisee par : drag & drop, coller, et bouton image.
+ */
+function insertImageFile(file, editor) {
+  // Limiter la taille (5 MB max pour eviter de plomber Supabase)
+  if (file.size > 5 * 1024 * 1024) {
+    toast("Image trop volumineuse (max 5 MB).", "error");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const range = editor.getSelection(true);
+    editor.insertEmbed(range.index, "image", reader.result);
+    editor.setSelection(range.index + 1);
+    // Quill ne marque pas les images draggable par defaut
+    setTimeout(() => {
+      editor.root.querySelectorAll("img:not([draggable])").forEach(img => {
+        img.setAttribute("draggable", "true");
+      });
+    }, 50);
+    toast("Image insérée.", "success", 1500);
+  };
+  reader.onerror = () => toast("Erreur lors de la lecture de l'image.", "error");
+  reader.readAsDataURL(file);
+}
+
+/**
+ * Active les interactions avancees sur les images de l'editeur Quill :
+ * - selection au clic (poignees + barre d'actions)
+ * - drag & drop interne pour deplacer une image
+ * - redimensionnement via les coins
+ * - alignement gauche / centre / droite
+ * - suppression via bouton ou touche Suppr
+ */
+function enableImageInteractions(quill) {
+  const editor = quill.root;
+  const container = editor.parentElement; // .ql-container
+
+  let selectedImg = null;
+  let overlay = null;
+  let toolbar = null;
+  let dropIndicator = null;
+  let isDragging = false;
+  let isResizing = false;
+
+  // ── Helpers ──────────────────────────────────────────────────
+
+  function clearSelection() {
+    if (selectedImg) selectedImg.classList.remove("selected-img");
+    selectedImg = null;
+    if (overlay) { overlay.remove(); overlay = null; }
+    if (toolbar) { toolbar.remove(); toolbar = null; }
+  }
+
+  function positionOverlay() {
+    if (!selectedImg || !overlay) return;
+    const r = selectedImg.getBoundingClientRect();
+    const cr = container.getBoundingClientRect();
+    overlay.style.top    = (r.top  - cr.top  + container.scrollTop)  + "px";
+    overlay.style.left   = (r.left - cr.left + container.scrollLeft) + "px";
+    overlay.style.width  = r.width  + "px";
+    overlay.style.height = r.height + "px";
+
+    if (toolbar) {
+      // Au-dessus de l'image (ou en dessous si pas la place)
+      const tbW = toolbar.offsetWidth || 240;
+      const tbTop = (r.top - cr.top + container.scrollTop) - 40;
+      toolbar.style.top  = (tbTop > 4 ? tbTop : (r.bottom - cr.top + container.scrollTop + 8)) + "px";
+      toolbar.style.left = Math.max(4, (r.left - cr.left + container.scrollLeft) + (r.width - tbW) / 2) + "px";
+    }
+  }
+
+  function selectImage(img) {
+    clearSelection();
+    selectedImg = img;
+    img.classList.add("selected-img");
+
+    // Overlay avec poignees de redimensionnement
+    overlay = document.createElement("div");
+    overlay.className = "img-resize-overlay";
+    ["nw", "ne", "sw", "se"].forEach(pos => {
+      const h = document.createElement("div");
+      h.className = `img-resize-handle ${pos}`;
+      h.dataset.pos = pos;
+      h.addEventListener("mousedown", e => startResize(e, pos));
+      overlay.appendChild(h);
+    });
+    container.appendChild(overlay);
+
+    // Toolbar contextuel (alignement / suppression)
+    toolbar = document.createElement("div");
+    toolbar.className = "img-context-toolbar";
+    toolbar.innerHTML = `
+      <button type="button" data-act="align-left"   title="Aligner à gauche">⇤</button>
+      <button type="button" data-act="align-center" title="Centrer">↔</button>
+      <button type="button" data-act="align-right"  title="Aligner à droite">⇥</button>
+      <span class="toolbar-sep"></span>
+      <button type="button" data-act="resize-50"  title="Petite taille">50%</button>
+      <button type="button" data-act="resize-100" title="Pleine largeur">100%</button>
+      <span class="toolbar-sep"></span>
+      <button type="button" data-act="delete" class="danger" title="Supprimer">🗑 Supprimer</button>
+    `;
+    toolbar.addEventListener("click", e => {
+      const btn = e.target.closest("button");
+      if (!btn || !selectedImg) return;
+      const act = btn.dataset.act;
+      if (act === "align-left")   setAlign("left");
+      if (act === "align-center") setAlign("center");
+      if (act === "align-right")  setAlign("right");
+      if (act === "resize-50")    setSize("50%");
+      if (act === "resize-100")   setSize("100%");
+      if (act === "delete")       deleteImage();
+    });
+    container.appendChild(toolbar);
+
+    positionOverlay();
+  }
+
+  function setAlign(align) {
+    if (!selectedImg) return;
+    selectedImg.classList.remove("img-align-left", "img-align-center", "img-align-right");
+    selectedImg.classList.add(`img-align-${align}`);
+    positionOverlay();
+  }
+
+  function setSize(size) {
+    if (!selectedImg) return;
+    selectedImg.style.width = size;
+    selectedImg.style.height = "auto";
+    setTimeout(positionOverlay, 50);
+  }
+
+  function deleteImage() {
+    if (!selectedImg) return;
+    selectedImg.remove();
+    clearSelection();
+    toast("Image supprimée.", "info", 1200);
+  }
+
+  // ── Selection au clic ────────────────────────────────────────
+  editor.addEventListener("click", e => {
+    if (e.target.tagName === "IMG") {
+      e.preventDefault();
+      selectImage(e.target);
+    } else if (selectedImg && !e.target.closest(".img-context-toolbar")
+               && !e.target.closest(".img-resize-overlay")) {
+      clearSelection();
+    }
+  });
+
+  // ── Suppression au clavier ───────────────────────────────────
+  document.addEventListener("keydown", e => {
+    if (selectedImg && (e.key === "Delete" || e.key === "Backspace")) {
+      e.preventDefault();
+      deleteImage();
+    }
+  });
+
+  // ── Drag interne d'une image vers un autre endroit ───────────
+  let draggedImg = null;
+
+  editor.addEventListener("dragstart", e => {
+    if (e.target.tagName === "IMG") {
+      draggedImg = e.target;
+      draggedImg.classList.add("dragging");
+      isDragging = true;
+      e.dataTransfer.effectAllowed = "move";
+      // Trick : on doit setter quelque chose pour que le drag fonctionne
+      try { e.dataTransfer.setData("text/plain", "internal-image"); } catch {}
+    }
+  });
+
+  editor.addEventListener("dragover", e => {
+    if (!draggedImg) return; // un drag externe (fichier) sera gere ailleurs
+    e.preventDefault();
+    e.stopPropagation();
+    showDropIndicator(e.clientY);
+  });
+
+  editor.addEventListener("dragend", e => {
+    if (draggedImg) {
+      draggedImg.classList.remove("dragging");
+      draggedImg = null;
+    }
+    hideDropIndicator();
+    isDragging = false;
+  });
+
+  editor.addEventListener("drop", e => {
+    if (!draggedImg) return;
+    // Eviter que le handler du drop externe (fichiers) ne s'execute
+    e.preventDefault();
+    e.stopPropagation();
+
+    const target = findDropTarget(e.clientY);
+    if (target && target.element !== draggedImg) {
+      // Inserer l'image au bon endroit
+      const parent = target.element.parentElement;
+      if (target.position === "before") {
+        parent.insertBefore(draggedImg, target.element);
+      } else {
+        parent.insertBefore(draggedImg, target.element.nextSibling);
+      }
+      // Notifier Quill du changement (pour que l'historique/undo fonctionne)
+      quill.update();
+    }
+    draggedImg.classList.remove("dragging");
+    draggedImg = null;
+    hideDropIndicator();
+    isDragging = false;
+  });
+
+  function showDropIndicator(clientY) {
+    const target = findDropTarget(clientY);
+    if (!target) { hideDropIndicator(); return; }
+    if (!dropIndicator) {
+      dropIndicator = document.createElement("div");
+      dropIndicator.className = "img-drop-indicator";
+    }
+    dropIndicator.remove();
+    if (target.position === "before") {
+      target.element.parentElement.insertBefore(dropIndicator, target.element);
+    } else {
+      target.element.parentElement.insertBefore(dropIndicator, target.element.nextSibling);
+    }
+  }
+
+  function hideDropIndicator() {
+    if (dropIndicator) { dropIndicator.remove(); dropIndicator = null; }
+  }
+
+  function findDropTarget(clientY) {
+    // Trouve l'element bloc le plus proche du curseur Y
+    const blocks = editor.querySelectorAll("p, h1, h2, h3, h4, ul, ol, blockquote, pre, img");
+    let best = null;
+    let bestDist = Infinity;
+    for (const el of blocks) {
+      if (el === draggedImg) continue;
+      const r = el.getBoundingClientRect();
+      const mid = r.top + r.height / 2;
+      const d = Math.abs(clientY - mid);
+      if (d < bestDist) {
+        bestDist = d;
+        best = { element: el, position: clientY < mid ? "before" : "after" };
+      }
+    }
+    return best;
+  }
+
+  // ── Redimensionnement via les poignees ───────────────────────
+  function startResize(e, corner) {
+    if (!selectedImg) return;
+    e.preventDefault();
+    e.stopPropagation();
+    isResizing = true;
+
+    const startX = e.clientX;
+    const startW = selectedImg.offsetWidth;
+    const startH = selectedImg.offsetHeight;
+    const ratio = startH / startW;
+    // Direction d'aggrandissement selon le coin (le coin oppose reste fixe)
+    const dir = (corner === "ne" || corner === "se") ? 1 : -1;
+
+    function onMove(ev) {
+      const dx = (ev.clientX - startX) * dir;
+      let newW = Math.max(60, startW + dx);
+      newW = Math.min(newW, editor.clientWidth - 30);
+      selectedImg.style.width  = newW + "px";
+      selectedImg.style.height = "auto";
+      positionOverlay();
+    }
+    function onUp() {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      isResizing = false;
+      quill.update();
+    }
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }
+
+  // ── Repositionner l'overlay si la fenetre bouge / scroll ─────
+  window.addEventListener("resize", positionOverlay);
+  container.addEventListener("scroll", positionOverlay);
+
+  // Cleanup quand on ferme la modale
+  return clearSelection;
 }
 
 // =============================================================================
@@ -3058,8 +3477,10 @@ function openPreview(build) {
   ui.previewFrame.src = "about:blank";
   ui.previewTryEmbedBtn.dataset.link = build.link;
 
-  // Stash for "copy hash"
+  // Stash for "copy hash" et "partager"
   ui.copyHashBtn.dataset.hash = hash || "";
+  ui.previewShareBtn.dataset.id = build.id;
+  ui.previewShareBtn.dataset.name = build.name;
 
   openModal(ui.previewModal);
 }
@@ -3512,6 +3933,10 @@ function openGuideEditor(guide = null) {
     } else {
       quillEditor.setText("");
     }
+    // S'assurer que toutes les images sont draggable
+    quillEditor.root.querySelectorAll("img").forEach(img => {
+      img.setAttribute("draggable", "true");
+    });
   }
 
   // Ouvrir
@@ -3524,6 +3949,10 @@ function closeGuideEditor() {
   ui.guideEditorModal.classList.remove("open");
   document.body.style.overflow = "";
   state.editingGuideId = null;
+  // Nettoyer la selection d'image si elle existe
+  if (quillEditor && quillEditor._clearImgSelection) {
+    quillEditor._clearImgSelection();
+  }
 }
 
 /**
@@ -3740,6 +4169,8 @@ function openArticle(guide) {
   const catLabel = getCategoryShortLabel(guide.category);
   ui.articleSubtitle.textContent = `${catLabel} • Ajouté le ${formatDate(guide.created_at)}`;
   ui.articleOpenLink.href = guide.link || "#";
+  ui.articleShareBtn.dataset.id = guide.id;
+  ui.articleShareBtn.dataset.name = guide.title;
 
   const content = guide.content || "";
   const fallback = guide.notes || "";
@@ -3830,6 +4261,14 @@ function renderGuideCard(guide) {
   copyBtn.textContent = "Copier";
   copyBtn.addEventListener("click", () => copyText(guide.link, "Lien copié"));
   actions.appendChild(copyBtn);
+
+  const shareBtn = document.createElement("button");
+  shareBtn.type = "button";
+  shareBtn.className = "btn-secondary";
+  shareBtn.title = "Copier un lien de partage vers ce guide";
+  shareBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" style="vertical-align:-2px; margin-right:3px;"><path d="M16 6 L12 2 L8 6 M12 2 V15 M5 12 V19 A2 2 0 0 0 7 21 H17 A2 2 0 0 0 19 19 V12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Partager`;
+  shareBtn.addEventListener("click", () => shareItem("guide", guide.id, guide.title));
+  actions.appendChild(shareBtn);
 
   if (isOwner) {
     const editBtn = document.createElement("button");
@@ -4089,6 +4528,14 @@ function renderBuildCard(build) {
   copyBtn.addEventListener("click", () => copyText(build.link, "Lien copié"));
   actions.appendChild(copyBtn);
 
+  const shareBtn = document.createElement("button");
+  shareBtn.type = "button";
+  shareBtn.className = "btn-secondary";
+  shareBtn.title = "Copier un lien de partage vers ce build";
+  shareBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" style="vertical-align:-2px; margin-right:3px;"><path d="M16 6 L12 2 L8 6 M12 2 V15 M5 12 V19 A2 2 0 0 0 7 21 H17 A2 2 0 0 0 19 19 V12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Partager`;
+  shareBtn.addEventListener("click", () => shareItem("build", build.id, build.name));
+  actions.appendChild(shareBtn);
+
   if (isOwner) {
     const editBtn = document.createElement("button");
     editBtn.type = "button";
@@ -4227,6 +4674,9 @@ function bindEvents() {
     else toast("Pas de hash dans ce build", "info");
   });
   ui.previewTryEmbedBtn.addEventListener("click", tryEmbed);
+  ui.previewShareBtn.addEventListener("click", () => {
+    shareItem("build", ui.previewShareBtn.dataset.id, ui.previewShareBtn.dataset.name);
+  });
 
   // Modal close on backdrop click
   [ui.loginModal, ui.editModal, ui.previewModal].forEach(m => {
@@ -4272,6 +4722,9 @@ function bindEvents() {
   });
 
   ui.closeArticleBtn.addEventListener("click", () => closeModal(ui.articleModal));
+  ui.articleShareBtn.addEventListener("click", () => {
+    shareItem("guide", ui.articleShareBtn.dataset.id, ui.articleShareBtn.dataset.name);
+  });
   ui.articleModal.addEventListener("click", e => { if (e.target === ui.articleModal) closeModal(ui.articleModal); });
 
   // ====== GUIDES ======
@@ -4315,18 +4768,191 @@ async function init() {
   populateGuideSelects();
   loadFavorites();
 
-  // Initialiser l'editeur Quill (creation + edition partagent la meme instance)
+  // Initialiser l'editeur Quill
   if (window.Quill) {
     quillEditor = new Quill("#ge-editor", {
       theme: "snow",
-      placeholder: "Rédige ton article ici…\n\nUtilise les boutons ci-dessus pour mettre en forme : titres, gras, liens, images, listes…",
+      placeholder: "Rédige ton article ici…\n\nGlisse une image ici ou utilise les boutons ci-dessus.",
       modules: { toolbar: "#ge-toolbar" }
     });
+
+    // ── Quill ecrase nos labels francais par ses icones SVG.
+    //    On les re-injecte APRES l'init. ──
+    const toolbar = document.querySelector("#ge-toolbar");
+    if (toolbar) {
+      const labels = {
+        ".ql-header[value='2']": "📌 Titre",
+        ".ql-header[value='3']": "📎 Sous-titre",
+        ".ql-bold":              "<b>Gras</b>",
+        ".ql-italic":            "<i>Italique</i>",
+        ".ql-underline":         "<u>Souligné</u>",
+        ".ql-strike":            "<s>Barré</s>",
+        ".ql-list[value='bullet']":  "• Puces",
+        ".ql-list[value='ordered']": "1. Numéros",
+        ".ql-blockquote":        "❝ Citation",
+        ".ql-link":              "🔗 Lien",
+        ".ql-image":             "🖼 Image",
+        ".ql-clean":             "✕ Effacer",
+      };
+      for (const [sel, label] of Object.entries(labels)) {
+        const btn = toolbar.querySelector(sel);
+        if (btn) {
+          btn.innerHTML = label;
+          btn.classList.add("qtb-btn", "qtb-wide");
+        }
+      }
+    }
+
+    // ── Drag & drop d'images depuis l'OS (fichiers externes) ──
+    const editorEl = quillEditor.root;
+
+    editorEl.addEventListener("dragover", e => {
+      // Si c'est un drag interne (image deja dans l'editeur), ne pas afficher l'overlay
+      // (le module enableImageInteractions s'en charge)
+      const hasFiles = e.dataTransfer?.types?.includes("Files");
+      if (!hasFiles) return;
+      e.preventDefault();
+      e.stopPropagation();
+      editorEl.classList.add("drag-over");
+    });
+    editorEl.addEventListener("dragleave", e => {
+      // Ne retirer la classe que si on quitte vraiment l'editeur
+      if (e.target === editorEl) editorEl.classList.remove("drag-over");
+    });
+
+    // Drop fichier externe : inserer l'image en base64
+    editorEl.addEventListener("drop", e => {
+      const hasFiles = e.dataTransfer?.types?.includes("Files");
+      if (!hasFiles) return; // c'etait un drag interne
+      e.preventDefault();
+      e.stopPropagation();
+      editorEl.classList.remove("drag-over");
+      const files = e.dataTransfer?.files;
+      if (!files || files.length === 0) return;
+      for (const file of files) {
+        if (!file.type.startsWith("image/")) continue;
+        insertImageFile(file, quillEditor);
+      }
+    });
+
+    // ── Coller une image depuis le presse-papier ──
+    editorEl.addEventListener("paste", e => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (file) insertImageFile(file, quillEditor);
+          return;
+        }
+      }
+    });
+
+    // ── Activer les interactions avancees sur les images ──
+    // (selection, drag interne, redimensionnement, alignement, suppression)
+    quillEditor._clearImgSelection = enableImageInteractions(quillEditor);
   }
 
   bindEvents();
   await fetchCurrentUser();
   await Promise.all([loadBuilds(), loadGuides()]);
+
+  // ── Partage par URL : ouvrir directement un build/guide ──
+  handleUrlSharing();
+}
+
+/**
+ * Lit les parametres de l'URL et ouvre le contenu correspondant.
+ *   ?build=<uuid>  -> ouvre la modale d'apercu du build
+ *   ?guide=<uuid>  -> ouvre l'article du guide
+ *   ?view=guides   -> bascule sur l'onglet Guides
+ *   ?view=builds   -> bascule sur l'onglet Builds (defaut)
+ */
+function handleUrlSharing() {
+  const params = new URLSearchParams(window.location.search);
+  const buildId = params.get("build");
+  const guideId = params.get("guide");
+  const view    = params.get("view");
+
+  if (guideId) {
+    const guide = state.allGuides.find(g => g.id === guideId);
+    if (guide) {
+      switchView("guides");
+      // Si l'article a du contenu -> ouvrir la modale article, sinon le lien externe
+      if (guide.content || guide.notes) {
+        openArticle(guide);
+      } else if (guide.link) {
+        toast(`Guide "${guide.title}" trouvé. Ouvre le lien externe.`, "info", 3000);
+      }
+    } else {
+      toast("Ce guide n'existe pas ou a été supprimé.", "error", 4000);
+    }
+    cleanUrl();
+    return;
+  }
+
+  if (buildId) {
+    const build = state.allBuilds.find(b => b.id === buildId);
+    if (build) {
+      switchView("builds");
+      openPreview(build);
+    } else {
+      toast("Ce build n'existe pas ou a été supprimé.", "error", 4000);
+    }
+    cleanUrl();
+    return;
+  }
+
+  if (view === "guides") switchView("guides");
+}
+
+/**
+ * Nettoie les parametres de l'URL (sans recharger la page)
+ * pour eviter d'avoir ?build=xxx qui reste affiche dans la barre.
+ */
+function cleanUrl() {
+  if (window.history && window.history.replaceState) {
+    const cleanPath = window.location.pathname + window.location.hash;
+    window.history.replaceState({}, document.title, cleanPath);
+  }
+}
+
+/**
+ * Construit une URL de partage pour un build ou guide.
+ */
+function buildShareUrl(type, id) {
+  const url = new URL(window.location.href);
+  url.search = "";  // nettoyer les params existants
+  url.hash = "";
+  url.searchParams.set(type, id);
+  return url.toString();
+}
+
+/**
+ * Copie l'URL de partage dans le presse-papier + toast.
+ */
+async function shareItem(type, id, name) {
+  const url = buildShareUrl(type, id);
+
+  // Si l'API native est dispo (mobile surtout), proposer le partage systeme
+  if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
+    try {
+      await navigator.share({ title: name, url });
+      return;
+    } catch (e) {
+      // L'utilisateur a annule ou erreur : fallback sur copy
+    }
+  }
+
+  // Fallback : copier dans le presse-papier
+  try {
+    await navigator.clipboard.writeText(url);
+    toast(`🔗 Lien copié : ${name}`, "success", 2500);
+  } catch {
+    // Vieux navigateur : fallback ultime
+    prompt("Copie ce lien :", url);
+  }
 }
 
 init();
